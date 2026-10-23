@@ -1,0 +1,1116 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0D2238">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Preuve">
+<title>Preuve de livraison</title>
+<script src="jspdf.umd.min.js"></script>
+<style>
+@font-face{font-family:"Archivo";src:url(fonts/archivo.woff2) format("woff2");font-weight:100 900;font-stretch:62% 125%;font-display:swap}
+@font-face{font-family:"Kufi";src:url(fonts/kufi-arabic.woff2) format("woff2");font-weight:100 900;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF}
+:root{
+  --bar:#0D2238; --bar-ink:#FFFFFF; --bar-soft:rgba(255,255,255,.68); --bar-line:rgba(255,255,255,.18);
+  --bg:#EDF1F5; --surface:#FFFFFF; --surface-2:#F4F7FA; --ink:#0D2238; --ink-2:#51657A; --line:#D7DFE7;
+  --accent:#F2A900; --accent-ink:#241A00; --accent-soft:#FDF1D2;
+  --ok:#14804A; --ok-soft:#E1F3E8; --bad:#C0362C; --bad-soft:#FBE7E5;
+  --font:"Archivo","Kufi",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:16px; --shadow:0 1px 2px rgba(13,34,56,.06),0 4px 14px rgba(13,34,56,.06);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bar:#0D2238; --bg:#08131E; --surface:#112131; --surface-2:#172A3C; --ink:#E7EEF5; --ink-2:#93A7BA; --line:#22374B;
+  --accent:#FFB81C; --accent-ink:#241A00; --accent-soft:#3A2E0E;
+  --ok:#3DC67E; --ok-soft:#123526; --bad:#FF6B5E; --bad-soft:#3A1B1A;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;
+}}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16.5px;line-height:1.45;-webkit-tap-highlight-color:transparent;min-height:100vh}
+button{font:inherit;cursor:pointer;border:0;color:inherit;background:none}
+button:focus-visible,input:focus-visible,label:focus-within,.tile:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.h{font-stretch:72%;font-weight:800;letter-spacing:-.005em;line-height:1.02}
+[dir=rtl] .h{font-stretch:100%;font-weight:700}
+
+/* ---------- barre du haut (toujours là) ---------- */
+.appbar{position:sticky;top:0;z-index:8;background:var(--bar);color:var(--bar-ink);display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;min-height:58px}
+.ib{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;position:relative;flex:none}
+.ib:active{background:var(--bar-line)}
+.badge{position:absolute;top:3px;inset-inline-end:2px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:.72rem;font-weight:800;display:grid;place-items:center;border:2px solid var(--bar)}
+.who{flex:1;min-width:0;display:flex;align-items:center;gap:9px}
+.who .nm{font-weight:700;font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.av{width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:800;font-size:.9rem;flex:none;text-transform:uppercase}
+.rolet{font-size:.7rem;font-weight:700;color:var(--bar-soft);border:1px solid var(--bar-line);border-radius:6px;padding:1px 6px;flex:none}
+.langb{display:flex;align-items:center;gap:6px;height:38px;padding:0 12px;border-radius:999px;border:1.5px solid var(--bar-line);font-weight:700;font-size:.85rem;flex:none}
+.langmenu{position:fixed;top:62px;inset-inline-end:12px;z-index:45;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.22);overflow:hidden;min-width:200px}
+.langmenu button{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;text-align:start;padding:14px 16px;font-weight:600}
+.langmenu button + button{border-top:1px solid var(--line)}
+.langmenu button.on{background:var(--surface-2)}
+.langmenu small{font-weight:800;color:var(--ink-2)}
+
+/* ---------- en-tête bleu de chaque écran ---------- */
+.hero{background:var(--bar);color:var(--bar-ink);padding:6px 20px 46px}
+.hero .in{max-width:560px;margin:0 auto}
+.hero h1{margin:0;font-size:2.35rem}
+.hero p{margin:6px 0 0;color:var(--bar-soft)}
+.sheet{max-width:560px;margin:-30px auto 0;padding:0 14px 24px;position:relative}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 4px;font-size:1.3rem}
+
+/* ---------- connexion ---------- */
+.login-hero{text-align:center;padding:26px 20px 64px}
+svg.i.stamp{width:104px;height:104px;color:var(--accent);display:block;margin:0 auto 14px;stroke-linecap:round;stroke-linejoin:round}
+.login-hero h1{font-size:2.6rem}
+.field{margin-top:14px}
+.field label{display:block;font-weight:700;font-size:.92rem;margin-bottom:7px}
+.inp{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1.5px solid var(--line);border-radius:12px;padding:0 12px;color:var(--ink-2)}
+.inp:focus-within{border-color:var(--ink);outline:none}
+.inp input{flex:1;min-width:0;width:100%;border:0;background:transparent;color:var(--ink);font:inherit;font-size:1.05rem;padding:14px 0;outline:none}
+.inp .eye{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;color:var(--ink-2)}
+.err{color:var(--bad);font-weight:600;min-height:1.4em;margin:12px 0 4px;font-size:.93rem}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border-radius:14px;padding:16px;font-weight:800;font-size:1.06rem}
+.btn-main{background:var(--accent);color:var(--accent-ink)}
+.btn-main:disabled{opacity:.4;cursor:not-allowed}
+.btn-2{background:var(--surface);color:var(--ink);border:1.5px solid var(--line);font-weight:700;padding:14px}
+.btn-quiet{color:var(--ink-2);font-weight:700;padding:12px}
+.btn:active:not(:disabled){transform:translateY(1px)}
+
+/* ---------- tours ---------- */
+.tours{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 14px;text-align:start;box-shadow:var(--shadow);min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tile .tn{font-size:1.45rem}
+.tile .ti{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none}
+.tile.cur{background:var(--bar);color:#fff;border-color:var(--bar)}
+.tile.cur .ti{background:var(--accent);color:var(--accent-ink)}
+
+/* ---------- admin ---------- */
+.form2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.acct{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.acct:first-child{border-top:0}
+.acct .av{background:var(--surface-2);color:var(--ink)}
+.acct .tx{flex:1;min-width:0}
+.acct .u{font-weight:700}
+.acct .pw{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem;color:var(--ink-2)}
+.chip-role{font-size:.7rem;font-weight:800;background:var(--accent-soft);color:var(--ink);border-radius:6px;padding:2px 7px;margin-inline-start:6px}
+.del{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--bad);background:var(--bad-soft)}
+
+/* ---------- écran livraison ---------- */
+.tourline{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.tourline small{display:block;color:var(--bar-soft);font-weight:600;font-size:.85rem;margin-bottom:2px}
+.tourline .tname{font-size:2.5rem}
+.pillbtn{display:flex;align-items:center;gap:7px;height:40px;padding:0 14px;border-radius:999px;background:var(--bar-line);font-weight:700;font-size:.88rem;flex:none}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;background:var(--bar-line);color:var(--bar-ink);font-size:.82rem;font-weight:600}
+.pill svg.i{width:16px;height:16px}
+.pill .d{width:8px;height:8px;border-radius:50%;background:var(--bar-soft)}
+.pill.ok .d{background:#4ADE80} .pill.bad .d{background:#FF7B6E}
+.prog{display:flex;gap:5px;margin-top:16px}
+.prog i{flex:1;height:5px;border-radius:3px;background:var(--bar-line)}
+.prog i.on{background:var(--accent)}
+.lab{display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:8px}
+.req{color:var(--bad)}
+.ocr{font-size:.85rem;color:var(--ink-2);margin-top:8px;min-height:1.2em}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{background:var(--surface-2);border:1px solid var(--line);padding:7px 12px;font-size:.9rem;border-radius:999px;text-align:start;font-weight:600}
+.cat{padding:14px}
+.cat-h{display:flex;align-items:center;gap:12px}
+.cat-ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:var(--accent-soft);color:var(--ink);flex:none;position:relative}
+.cat.done .cat-ic{background:var(--ok-soft);color:var(--ok)}
+.cat-ic .ck{position:absolute;bottom:-4px;inset-inline-end:-4px;width:20px;height:20px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;border:2px solid var(--surface)}
+.cat-ic .ck svg.i{width:12px;height:12px;stroke-width:3.2}
+.cat-t{flex:1;min-width:0}
+.cat-n{font-weight:800;font-size:1.06rem}
+.cat-s{font-size:.84rem;color:var(--ink-2)}
+.cat-s.req{color:var(--bad);font-weight:600}
+.thumbs{display:flex;gap:8px;overflow-x:auto;margin:12px -2px 0;padding:2px 2px 4px;scrollbar-width:none}
+.thumbs:empty{display:none}
+.th{flex:none;width:84px;height:84px;padding:0;overflow:hidden;border-radius:12px;background:var(--surface-2);border:1px solid var(--line)}
+.th img{width:100%;height:100%;object-fit:cover;display:block}
+.acts{display:grid;grid-template-columns:1.35fr 1fr;gap:8px;margin-top:12px}
+.acts label{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 8px;font-weight:700;font-size:.95rem;border-radius:12px;cursor:pointer;position:relative;text-align:center}
+.a-cam{background:var(--bar);color:#fff}
+@media (prefers-color-scheme:dark){.a-cam{background:var(--accent);color:var(--accent-ink)}}
+.a-gal{background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0)}
+.dock{position:sticky;bottom:0;z-index:5;background:var(--bg);border-top:1px solid var(--line);padding:10px 14px calc(14px + env(safe-area-inset-bottom,0px));margin-top:6px}
+.dock .in{max-width:532px;margin:0 auto}
+.dock .note{font-size:.85rem;color:var(--ink-2);text-align:center;margin:0 0 8px;min-height:1.2em}
+.reset{display:block;margin:2px auto 0}
+
+/* ---------- visionneuse ---------- */
+.lb{position:fixed;inset:0;z-index:40;background:#000;display:flex;flex-direction:column}
+.lb img{flex:1;min-height:0;width:100%;object-fit:contain}
+.lb-bar{display:flex;gap:8px;align-items:center;padding:12px 14px;color:#fff;background:#0b0b0b}
+.lb-bar span{flex:1;font-weight:700}
+.lb-bar button{display:flex;align-items:center;gap:6px;padding:11px 14px;border-radius:12px;font-weight:700}
+.lb-del{color:#FF8A80;background:rgba(255,138,128,.12)}
+.lb-close{background:#fff;color:#000}
+
+/* ---------- tiroir ---------- */
+.scrim{position:fixed;inset:0;z-index:30;background:rgba(5,12,20,.5)}
+.drawer{position:fixed;top:0;bottom:0;left:0;z-index:31;width:min(88vw,400px);background:var(--bg);box-shadow:6px 0 30px rgba(0,0,0,.28);transform:translateX(-102%);display:flex;flex-direction:column}
+.drawer.open{transform:translateX(0)}
+[dir=rtl] .drawer{left:auto;right:0;transform:translateX(102%)}
+[dir=rtl] .drawer.open{transform:translateX(0)}
+@media (prefers-reduced-motion:no-preference){.drawer{transition:transform .24s cubic-bezier(.2,.8,.2,1)}}
+.dr-h{background:var(--bar);color:#fff;padding:16px 16px 18px}
+.dr-top{display:flex;align-items:center;justify-content:space-between}
+.dr-top strong{font-size:1.7rem}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bar-line);border-radius:12px;padding:4px;margin-top:14px}
+.seg button{padding:10px 6px;border-radius:9px;font-weight:700;color:var(--bar-soft)}
+.seg button.on{background:#fff;color:var(--bar)}
+.dr-list{flex:1;overflow-y:auto;padding:14px}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
+.item .row{display:flex;align-items:flex-start;gap:12px}
+.item .st{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none;background:var(--accent-soft);color:var(--ink)}
+.item.sent .st{background:var(--ok-soft);color:var(--ok)}
+.item .n{font-weight:800}
+.item .m{font-size:.84rem;color:var(--ink-2)}
+.tag{display:inline-block;font-size:.74rem;font-weight:700;border-radius:6px;padding:2px 7px;margin-top:6px;background:var(--surface-2);color:var(--ink-2)}
+.item .b{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.item .b button{display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:11px;font-weight:700;font-size:.88rem;background:var(--surface-2);border:1px solid var(--line)}
+.item .b .go{background:var(--bar);color:#fff;border-color:var(--bar)}
+@media (prefers-color-scheme:dark){.item .b .go{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}}
+.item .b .x{color:var(--bad);background:var(--bad-soft);border-color:transparent}
+.item .b svg.i{width:17px;height:17px}
+.empty{color:var(--ink-2);text-align:center;padding:40px 16px}
+.empty svg{width:64px;height:64px;color:var(--line);display:block;margin:0 auto 10px}
+.dr-foot{padding:12px 14px 16px;display:grid;gap:6px;border-top:1px solid var(--line)}
+
+/* ---------- bienvenue + confirmation ---------- */
+.over{position:fixed;inset:0;z-index:60;background:var(--bar);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:28px}
+.over svg.i.stamp{width:132px;height:132px;margin-bottom:18px}
+.over .s1{font-size:1.2rem;color:var(--bar-soft)}
+.over .s2{font-size:2.9rem;word-break:break-word;max-width:100%}
+.over .s3{color:var(--accent);font-weight:700;margin-top:6px;min-height:1.4em}
+.over.okc .stamp{color:#4ADE80}
+.over .btn{max-width:320px;margin-top:26px}
+@media (prefers-reduced-motion:no-preference){
+  .over .stamp{animation:stampIn .55s cubic-bezier(.2,1.4,.4,1) both}
+  .over .s1{animation:up .45s .15s ease-out both}
+  .over .s2{animation:up .45s .22s ease-out both}
+  .over .s3,.over .btn{animation:up .45s .3s ease-out both}
+  .over.out{transition:opacity .3s ease-in;opacity:0}
+}
+@keyframes stampIn{from{opacity:0;transform:scale(1.6) rotate(14deg)}to{opacity:1;transform:none}}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+.toast{position:fixed;left:14px;right:14px;bottom:18px;max-width:532px;margin:0 auto;background:var(--ink);color:var(--bg);padding:14px 16px;border-radius:14px;font-weight:600;display:none;z-index:70;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.toast.show{display:block}
+.busy{pointer-events:none}
+.busy .sheet,.busy .dock{opacity:.6}
+svg.logo{width:116px;height:116px;color:var(--accent);display:block;margin:0 auto 10px}
+.over svg.logo{width:140px;height:140px;margin-bottom:14px}
+.inp textarea{flex:1;min-width:0;width:100%;border:0;background:transparent;color:var(--ink);font:inherit;font-size:1rem;line-height:1.45;padding:12px 0;outline:none;resize:vertical;min-height:88px}
+.cat-name{width:100%;border:0;border-bottom:1.5px dashed var(--line);background:transparent;color:var(--ink);font:inherit;font-weight:800;font-size:1.06rem;padding:2px 0 3px;outline:none}
+.cat-name:focus{border-bottom-color:var(--accent)}
+.catdel{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:var(--bad);background:var(--bad-soft);flex:none}
+.addfree{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:var(--r);border:2px dashed var(--line);color:var(--ink-2);font-weight:700;margin:0 0 12px}
+.addfree:active{background:var(--surface-2)}
+.opt{font-weight:500;color:var(--ink-2);font-size:.85rem}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h4"/></symbol>
+  <symbol id="i-pat" viewBox="0 0 24 24"><path d="M3.5 15.5C5 9.5 8.5 6.5 12 6.5s7 3 8.5 9"/><path d="M8 16c.8-3 2.2-4.8 4-4.8s3.2 1.8 4 4.8"/><path d="M3.5 15.5l3 2.2M20.5 15.5l-3 2.2M12 11.2v-4.7"/></symbol>
+  <symbol id="i-kk" viewBox="0 0 24 24"><path d="M4.5 9.5h11.5v4.2a5 5 0 0 1-5 5h-1.5a5 5 0 0 1-5-5z"/><path d="M16 10.5h1.6a2.4 2.4 0 0 1 0 4.8H16"/><path d="M8 3.5c-.7 1 .7 1.8 0 3M11.5 3.5c-.7 1 .7 1.8 0 3"/></symbol>
+  <symbol id="i-sand" viewBox="0 0 24 24"><path d="M3 11l9-6 9 6z"/><path d="M4 14.5c2.7 1 5.3-1 8 0s5.3-1 8 0"/><path d="M3 18.5h18"/></symbol>
+  <symbol id="i-pain" viewBox="0 0 24 24"><path d="M4.5 11.5a7.5 4.5 0 0 1 15 0V18a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1z"/><path d="M9 8.7l1.2 3.3M12.3 8.2v3.6M15.6 8.7l-1.2 3.3"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8.5h3.2l1.8-3h6l1.8 3H20a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.3" r="3.6"/></symbol>
+  <symbol id="i-img" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="8.8" cy="9.6" r="1.7"/><path d="M21 15.5l-4.8-4.8L7 19.5"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M4 13.5l2.2-8h11.6l2.2 8V19H4z"/><path d="M4 13.5h4.5l1.2 2.2h4.6l1.2-2.2H20"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5a7 7 0 0 0-14 0C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M5 8h13l-3.5-3.5M19 16H6l3.5 3.5"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M14 4h5v16h-5"/><path d="M9.5 8L5.5 12l4 4M5.5 12H15"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l.9 12.5h9.2l.9-12.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v9A1.5 1.5 0 0 0 5 15.5h3.5"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.3-3.7 4.1-5.5 7.5-5.5s6.2 1.8 7.5 5.5"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="logo-truck" viewBox="0 0 120 120">
+    <path fill="currentColor" d="M4 42h12M2 52h14M6 62h10" style="stroke:currentColor;stroke-width:4;stroke-linecap:round"/>
+    <rect x="20" y="28" width="58" height="50" rx="6" fill="currentColor"/>
+    <path fill="currentColor" d="M82 42h19a4 4 0 0 1 3.2 1.6l10 13.4a4 4 0 0 1 .8 2.4V74a4 4 0 0 1-4 4H82z"/>
+    <path d="M88 48h11.5l7 9.5H88z" style="fill:var(--bar)"/>
+    <g style="fill:none;stroke:var(--bar);stroke-width:4;stroke-linecap:round;stroke-linejoin:round">
+      <path d="M49 39v28M36.9 46l24.2 14M36.9 60l24.2-14"/>
+      <path d="M44 41.5l5 4 5-4M44 64.5l5-4 5 4"/>
+    </g>
+    <circle cx="38" cy="82" r="10.5" style="fill:var(--bar);stroke:currentColor;stroke-width:5"/>
+    <circle cx="98" cy="82" r="10.5" style="fill:var(--bar);stroke:currentColor;stroke-width:5"/>
+  </symbol>
+  <symbol id="i-stamp" viewBox="0 0 120 120"><g transform="rotate(-12 60 60)"><circle cx="60" cy="60" r="53" stroke-width="5.5"/><circle cx="60" cy="60" r="43" stroke-width="2.2" stroke-dasharray="3.5 5.5"/><path d="M39 61.5l14 14 28-30" stroke-width="10"/></g></symbol>
+</svg>
+
+<!-- BARRE DU HAUT -->
+<header class="appbar">
+  <button class="ib" id="btnMenu" hidden data-i18n-aria="myDeliveries"><svg class="i"><use href="#i-inbox"/></svg><span class="badge" id="menuBadge" hidden></span></button>
+  <div class="who" id="who"></div>
+  <button class="langb" id="btnLang" aria-haspopup="true"><svg class="i" style="width:18px;height:18px"><use href="#i-globe"/></svg><span id="langCode">FR</span></button>
+</header>
+<div class="langmenu" id="langMenu" hidden></div>
+
+<!-- CONNEXION -->
+<section id="sLogin">
+  <div class="hero login-hero"><div class="in">
+    <svg class="logo" viewBox="0 0 120 120" aria-hidden="true"><use href="#logo-truck"/></svg>
+    <h1 class="h" data-i18n="appName"></h1>
+    <p data-i18n="loginSub"></p>
+  </div></div>
+  <div class="sheet"><div class="card" style="padding:20px">
+    <div class="field" style="margin-top:0"><label for="lu" data-i18n="username"></label>
+      <div class="inp"><svg class="i"><use href="#i-user"/></svg><input id="lu" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" dir="auto"></div></div>
+    <div class="field"><label for="lp" data-i18n="password"></label>
+      <div class="inp"><svg class="i"><use href="#i-lock"/></svg><input id="lp" type="password" autocomplete="current-password"><button class="eye" id="pwEye" type="button" data-i18n-aria="showPw"><svg class="i"><use href="#i-eye"/></svg></button></div></div>
+    <div class="err" id="lErr" role="alert"></div>
+    <button class="btn btn-main" id="btnLogin" data-i18n="login"></button>
+  </div></div>
+</section>
+
+<!-- ADMIN -->
+<section id="sAdmin" hidden>
+  <div class="hero"><div class="in"><h1 class="h" data-i18n="admin"></h1><p data-i18n="adminSub"></p></div></div>
+  <div class="sheet">
+    <div class="card">
+      <h3 class="h" data-i18n="addDriver"></h3>
+      <div class="form2">
+        <div class="field"><label for="nu" data-i18n="name"></label><div class="inp"><input id="nu" type="text" autocapitalize="none" spellcheck="false" dir="auto"></div></div>
+        <div class="field"><label for="np" data-i18n="password"></label><div class="inp"><input id="np" type="text" autocapitalize="none" spellcheck="false" dir="auto"></div></div>
+      </div>
+      <div class="err" id="adErr" role="alert"></div>
+      <button class="btn btn-main" id="btnAdd"><svg class="i"><use href="#i-plus"/></svg><span data-i18n="add"></span></button>
+    </div>
+    <div class="card"><h3 class="h" data-i18n="accounts"></h3><div id="acctList"></div></div>
+    <button class="btn btn-2" id="adUse" data-i18n="useApp"></button>
+    <button class="btn btn-quiet" id="adLogout"><svg class="i"><use href="#i-out"/></svg><span data-i18n="logout"></span></button>
+  </div>
+</section>
+
+<!-- CHOIX DU TOUR -->
+<section id="sTour" hidden>
+  <div class="hero"><div class="in"><h1 class="h" data-i18n="chooseTour"></h1><p data-i18n="chooseTourSub"></p></div></div>
+  <div class="sheet">
+    <div class="tours" id="tourGrid"></div>
+    <button class="btn btn-quiet" id="tLogout" style="margin-top:12px"><svg class="i"><use href="#i-out"/></svg><span data-i18n="logout"></span></button>
+  </div>
+</section>
+
+<!-- LIVRAISON -->
+<section id="sMain" hidden>
+  <div class="hero"><div class="in">
+    <div class="tourline">
+      <div style="min-width:0"><small id="mDate"></small><div class="h tname" id="mTour"></div></div>
+      <button class="pillbtn" id="btnTour"><svg class="i" style="width:18px;height:18px"><use href="#i-swap"/></svg><span data-i18n="changeTour"></span></button>
+    </div>
+    <div class="meta"><span class="pill" id="gpsPill"><span class="d"></span><span id="gpsTxt"></span></span><span class="pill" id="progTxt"></span></div>
+    <div class="prog" id="prog"></div>
+  </div></div>
+  <div class="sheet">
+    <div class="card client">
+      <label class="lab" for="client"><span data-i18n="client"></span><span class="req">*</span></label>
+      <div class="inp"><input id="client" type="text" data-i18n-ph="clientPh" autocomplete="off" dir="auto"></div>
+      <div class="ocr" id="ocrTxt"></div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div id="cats"></div>
+    <button class="addfree" id="btnFree"><svg class="i"><use href="#i-plus"/></svg><span data-i18n="addFree"></span></button>
+    <div class="card">
+      <label class="lab" for="obs"><span data-i18n="obs"></span><span class="opt" data-i18n="optional"></span></label>
+      <div class="inp"><textarea id="obs" rows="3" data-i18n-ph="obsPh" dir="auto"></textarea></div>
+    </div>
+  </div>
+  <div class="dock"><div class="in">
+    <p class="note" id="sendNote"></p>
+    <button class="btn btn-main" id="btnSend" disabled><svg class="i"><use href="#i-send"/></svg><span data-i18n="send"></span></button>
+    <button class="btn btn-quiet reset" id="btnReset" data-i18n="newDelivery"></button>
+  </div></div>
+</section>
+
+<!-- TIROIR -->
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="dr-h">
+    <div class="dr-top"><strong class="h" data-i18n="myDeliveries"></strong><button class="ib" id="drClose" data-i18n-aria="close"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div class="seg"><button class="on" id="tabDr"><span data-i18n="drafts"></span> <span id="nDr"></span></button><button id="tabOut"><span data-i18n="sent"></span> <span id="nOut"></span></button></div>
+  </div>
+  <div class="dr-list" id="drList"></div>
+  <div class="dr-foot">
+    <button class="btn btn-main" id="drSendAll"><svg class="i"><use href="#i-send"/></svg><span data-i18n="sendAll"></span></button>
+    <button class="btn btn-quiet" id="drLogout"><svg class="i"><use href="#i-out"/></svg><span data-i18n="logout"></span></button>
+  </div>
+</aside>
+
+<!-- VISIONNEUSE -->
+<div class="lb" id="lb" hidden>
+  <img id="lbImg" alt="">
+  <div class="lb-bar"><span id="lbCap"></span>
+    <button class="lb-del" id="lbDel"><svg class="i" style="width:18px;height:18px"><use href="#i-trash"/></svg><span data-i18n="delete"></span></button>
+    <button class="lb-close" id="lbClose" data-i18n="close"></button></div>
+</div>
+
+<!-- BIENVENUE / CONFIRMATION -->
+<div class="over" id="over" hidden>
+  <svg class="i stamp" id="ovStamp" viewBox="0 0 120 120"><use href="#i-stamp"/></svg>
+  <svg class="logo" id="ovLogo" viewBox="0 0 120 120" aria-hidden="true" hidden><use href="#logo-truck"/></svg>
+  <div class="s1" id="ov1"></div>
+  <div class="s2 h" id="ov2"></div>
+  <div class="s3" id="ov3"></div>
+  <button class="btn btn-main" id="ovBtn" hidden></button>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ===================== CONFIGURATION ===================== */
+const TOURS = ["Linkeroever","Kasterlee","Antwerpen","Brasschaat","Limburg","Medemens","Lebbeke","Lier","Brussel","Brugge","Extra"];
+const CATS = [
+  {key:"bon",  name:"Bon de livraison", required:true, icon:"i-doc"},
+  {key:"pat",  name:"Pâtisserie", icon:"i-pat"},
+  {key:"kk",   name:"Koffiekoek", icon:"i-kk"},
+  {key:"sand", name:"Sandwich", icon:"i-sand"},
+  {key:"pain", name:"Pain", icon:"i-pain"},
+];
+const SB_URL = "https://ujvihkryzjrawamekwpu.supabase.co";
+const SB_KEY = "";
+const EMAIL_DEST = "";
+// Version iPhone / web : adresse du script Google qui envoie les e-mails (Gmail)
+const MAIL_URL = "";
+const KEEP_SENT = 30;
+/* ========================================================= */
+
+/* ===================== LANGUES ===================== */
+const LANGS = {fr:"Français", en:"English", nl:"Nederlands", ar:"العربية"};
+const LOCALE = {fr:"fr-BE", en:"en-GB", nl:"nl-BE", ar:"ar"};
+const I18N = {
+fr:{addPhoto:"Ajouter photo",addFree:"Ajouter une photo libre",freePhoto:"Photo libre",freeName:"Nom de la photo",delField:"Supprimer ce champ",confirmDelField:"Supprimer « {n} » et ses photos ?",obs:"Observations",optional:"facultatif",obsPh:"Écris une remarque sur la livraison…",appName:"Preuve de livraison",loginSub:"Connecte-toi pour commencer ta tournée.",username:"Nom d'utilisateur",password:"Mot de passe",login:"Se connecter",logout:"Déconnexion",showPw:"Afficher le mot de passe",
+ errEmpty:"Entre ton nom et ton mot de passe.",errNoConf:"La base des comptes n'est pas encore configurée (clé Supabase manquante).",errServer:"Erreur du serveur : ",
+ errOffline:"Pas d'internet. Ce compte doit d'abord se connecter une fois avec internet sur ce téléphone.",errWrong:"Nom ou mot de passe incorrect.",sessionEnded:"Ton compte a été modifié ou supprimé. Reconnecte-toi.",
+ welcome:"Bienvenue",admin:"Administration",adminSub:"Gère les comptes des chauffeurs.",addDriver:"Ajouter un chauffeur",name:"Nom",add:"Ajouter",accounts:"Comptes",loading:"Chargement…",noAccounts:"Aucun compte.",
+ delete:"Supprimer",confirmDelDriver:"Supprimer le chauffeur « {n} » ?",driverDeleted:"Chauffeur supprimé",errorPrefix:"Erreur : ",noNet:"Pas d'internet.",
+ loadAccErr:"Pas d'internet : impossible de charger les comptes.",addRule:"Nom : 2 caractères minimum. Mot de passe : 4 minimum.",driverAdded:"Chauffeur « {n} » ajouté ✔",
+ useApp:"Utiliser l'appli (choisir un tour)",chooseTour:"Choisis ton tour",chooseTourSub:"Il restera choisi jusqu'à ce que tu le changes.",tourOf:"Tour {t}",changeTour:"Changer",
+ gpsSearch:"GPS…",gpsOn:"GPS ± {m} m",gpsOff:"Active la localisation",
+ client:"Nom du client",clientPh:"Lu sur le bon de livraison",ocrHint:"Prends la photo du bon : le nom sera lu automatiquement.",ocrReading:"Lecture du bon de livraison…",
+ ocrNone:"Aucun texte lu. Tape le nom du client ou reprends la photo plus nette.",ocrFound:"Nom lu sur le bon. Vérifie-le, ou touche la bonne ligne :",ocrPick:"Touche la ligne qui contient le nom du client :",
+ ocrFail:"Lecture impossible. Tape le nom du client.",typeClient:"Tape le nom du client.",send:"Envoyer la preuve",newDelivery:"Nouvelle livraison",confirmReset:"Effacer toutes les photos et recommencer ?",
+ lostPhotos:"Les photos de la livraison en cours seront perdues. Se déconnecter ?",
+ cat_bon:"Bon de livraison",cat_pat:"Pâtisserie",cat_kk:"Koffiekoek",cat_sand:"Sandwich",cat_pain:"Pain",required:"Obligatoire",empty:"Aucune photo",takePhoto:"Prendre photo",gallery:"Galerie",
+ needBon:"Prends au moins une photo du bon de livraison.",needClient:"Indique le nom du client.",ready:"Prêt : {n} au total",progress:"{n}/{m} catégories",
+ processing:"Traitement de la photo…",processingN:"Traitement de {n} photos…",saved1:"Photo enregistrée",savedN:"{n} photos enregistrées",readErr:"Impossible de lire la photo. Réessaie.",
+ close:"Fermer",confirmDelPhoto:"Supprimer « {n} » ?",noPdfModule:"Le module PDF est absent de l'appli.",pdfErr:"Erreur lors de la création du PDF.",sendNA:"Envoi non disponible ici.",
+ sendingNow:"Envoi en cours…",okSent:"Preuve envoyée",okDraft:"Enregistrée dans les brouillons",okDraftSub:"Elle partira toute seule dès que le réseau revient.",okNext:"Livraison suivante",sentDraftOk:"Envoyé ✔ {c}",
+ sendFail:"Envoi impossible : ",notConfigured:"Envoi automatique non configuré.",retryLater:"Pas d'internet. Réessaie plus tard.",
+ sendingC:"Envoi : {c}…",myDeliveries:"Mes livraisons",drafts:"Brouillons",sent:"Envoyés",sendAll:"Envoyer tous les brouillons",noDrafts:"Aucun brouillon : tout a été envoyé.",noSent:"Aucun envoi pour l'instant.",
+ created:"créé le {d}",sentOn:"envoyé le {d}",tagCopy:"Copie : envoi manuel",tagAuto:"Part automatiquement dès qu'il y a internet",sendBtn:"Envoyer",openPdf:"PDF",
+ confirmDelDraft:"Supprimer le brouillon « {c} » ? Il ne sera jamais envoyé.",copy:"Créer une copie",copied:"Copie enregistrée dans les brouillons ✔",openNA:"Ouverture non disponible ici.",
+ netBack:"Internet revenu : envoi des brouillons…",netGone:"Pas d'internet : les livraisons iront dans les brouillons.",denied:"Accès refusé.",exists:"Ce nom existe déjà.",noPdfApp:"Aucune appli pour lire les PDF sur ce téléphone.",language:"Langue"},
+en:{addPhoto:"Add photo",addFree:"Add a free photo",freePhoto:"Free photo",freeName:"Photo name",delField:"Delete this field",confirmDelField:"Delete “{n}” and its photos?",obs:"Remarks",optional:"optional",obsPh:"Write a remark about the delivery…",appName:"Proof of delivery",loginSub:"Sign in to start your round.",username:"Username",password:"Password",login:"Sign in",logout:"Sign out",showPw:"Show password",
+ errEmpty:"Enter your username and password.",errNoConf:"The account database is not set up yet (Supabase key missing).",errServer:"Server error: ",
+ errOffline:"No internet. This account must sign in once with internet on this phone first.",errWrong:"Wrong username or password.",sessionEnded:"Your account was changed or deleted. Please sign in again.",
+ welcome:"Welcome",admin:"Administration",adminSub:"Manage the drivers' accounts.",addDriver:"Add a driver",name:"Name",add:"Add",accounts:"Accounts",loading:"Loading…",noAccounts:"No accounts.",
+ delete:"Delete",confirmDelDriver:"Delete driver “{n}”?",driverDeleted:"Driver deleted",errorPrefix:"Error: ",noNet:"No internet.",
+ loadAccErr:"No internet: cannot load the accounts.",addRule:"Name: at least 2 characters. Password: at least 4.",driverAdded:"Driver “{n}” added ✔",
+ useApp:"Use the app (choose a route)",chooseTour:"Choose your route",chooseTourSub:"It stays selected until you change it.",tourOf:"Route {t}",changeTour:"Change",
+ gpsSearch:"GPS…",gpsOn:"GPS ± {m} m",gpsOff:"Turn on location",
+ client:"Customer name",clientPh:"Read from the delivery note",ocrHint:"Take a photo of the note: the name will be read automatically.",ocrReading:"Reading the delivery note…",
+ ocrNone:"No text found. Type the customer name or retake a sharper photo.",ocrFound:"Name read from the note. Check it, or tap the right line:",ocrPick:"Tap the line with the customer name:",
+ ocrFail:"Could not read. Type the customer name.",typeClient:"Type the customer name.",send:"Send proof",newDelivery:"New delivery",confirmReset:"Delete all photos and start again?",
+ lostPhotos:"Photos of the current delivery will be lost. Sign out?",
+ cat_bon:"Delivery note",cat_pat:"Pastry",cat_kk:"Koffiekoek",cat_sand:"Sandwich",cat_pain:"Bread",required:"Required",empty:"No photos",takePhoto:"Take photo",gallery:"Gallery",
+ needBon:"Take at least one photo of the delivery note.",needClient:"Enter the customer name.",ready:"Ready: {n} in total",progress:"{n}/{m} categories",
+ processing:"Processing photo…",processingN:"Processing {n} photos…",saved1:"Photo saved",savedN:"{n} photos saved",readErr:"Could not read the photo. Try again.",
+ close:"Close",confirmDelPhoto:"Delete “{n}”?",noPdfModule:"The PDF module is missing from the app.",pdfErr:"Error while creating the PDF.",sendNA:"Sending not available here.",
+ sendingNow:"Sending…",okSent:"Proof sent",okDraft:"Saved in drafts",okDraftSub:"It will be sent automatically when the network is back.",okNext:"Next delivery",sentDraftOk:"Sent ✔ {c}",
+ sendFail:"Sending failed: ",notConfigured:"Automatic sending is not configured.",retryLater:"No internet. Try again later.",
+ sendingC:"Sending: {c}…",myDeliveries:"My deliveries",drafts:"Drafts",sent:"Sent",sendAll:"Send all drafts",noDrafts:"No drafts: everything has been sent.",noSent:"Nothing sent yet.",
+ created:"created {d}",sentOn:"sent {d}",tagCopy:"Copy: manual sending",tagAuto:"Sent automatically when internet is back",sendBtn:"Send",openPdf:"PDF",
+ confirmDelDraft:"Delete draft “{c}”? It will never be sent.",copy:"Create a copy",copied:"Copy saved in drafts ✔",openNA:"Opening not available here.",
+ netBack:"Internet is back: sending drafts…",netGone:"No internet: deliveries will go to drafts.",denied:"Access denied.",exists:"This name already exists.",noPdfApp:"No app to read PDFs on this phone.",language:"Language"},
+nl:{addPhoto:"Foto toevoegen",addFree:"Vrije foto toevoegen",freePhoto:"Vrije foto",freeName:"Naam van de foto",delField:"Dit veld verwijderen",confirmDelField:"„{n}” en de foto's verwijderen?",obs:"Opmerkingen",optional:"optioneel",obsPh:"Schrijf een opmerking over de levering…",appName:"Leveringsbewijs",loginSub:"Meld je aan om je ronde te starten.",username:"Gebruikersnaam",password:"Wachtwoord",login:"Aanmelden",logout:"Afmelden",showPw:"Wachtwoord tonen",
+ errEmpty:"Vul je naam en wachtwoord in.",errNoConf:"De accountdatabase is nog niet ingesteld (Supabase-sleutel ontbreekt).",errServer:"Serverfout: ",
+ errOffline:"Geen internet. Dit account moet eerst één keer met internet aanmelden op deze telefoon.",errWrong:"Verkeerde naam of wachtwoord.",sessionEnded:"Je account werd gewijzigd of verwijderd. Meld je opnieuw aan.",
+ welcome:"Welkom",admin:"Beheer",adminSub:"Beheer de accounts van de chauffeurs.",addDriver:"Chauffeur toevoegen",name:"Naam",add:"Toevoegen",accounts:"Accounts",loading:"Laden…",noAccounts:"Geen accounts.",
+ delete:"Verwijderen",confirmDelDriver:"Chauffeur „{n}” verwijderen?",driverDeleted:"Chauffeur verwijderd",errorPrefix:"Fout: ",noNet:"Geen internet.",
+ loadAccErr:"Geen internet: accounts kunnen niet geladen worden.",addRule:"Naam: minstens 2 tekens. Wachtwoord: minstens 4.",driverAdded:"Chauffeur „{n}” toegevoegd ✔",
+ useApp:"App gebruiken (ronde kiezen)",chooseTour:"Kies je ronde",chooseTourSub:"Ze blijft gekozen tot je ze wijzigt.",tourOf:"Ronde {t}",changeTour:"Wijzigen",
+ gpsSearch:"GPS…",gpsOn:"GPS ± {m} m",gpsOff:"Zet locatie aan",
+ client:"Naam klant",clientPh:"Gelezen op de leveringsnota",ocrHint:"Neem een foto van de nota: de naam wordt automatisch gelezen.",ocrReading:"Leveringsnota lezen…",
+ ocrNone:"Geen tekst gelezen. Typ de naam van de klant of neem een scherpere foto.",ocrFound:"Naam gelezen op de nota. Controleer of tik op de juiste lijn:",ocrPick:"Tik op de lijn met de naam van de klant:",
+ ocrFail:"Lezen mislukt. Typ de naam van de klant.",typeClient:"Typ de naam van de klant.",send:"Bewijs versturen",newDelivery:"Nieuwe levering",confirmReset:"Alle foto's wissen en opnieuw beginnen?",
+ lostPhotos:"De foto's van de huidige levering gaan verloren. Afmelden?",
+ cat_bon:"Leveringsnota",cat_pat:"Gebak",cat_kk:"Koffiekoek",cat_sand:"Sandwich",cat_pain:"Brood",required:"Verplicht",empty:"Geen foto's",takePhoto:"Foto nemen",gallery:"Galerij",
+ needBon:"Neem minstens één foto van de leveringsnota.",needClient:"Vul de naam van de klant in.",ready:"Klaar: {n} in totaal",progress:"{n}/{m} categorieën",
+ processing:"Foto verwerken…",processingN:"{n} foto's verwerken…",saved1:"Foto opgeslagen",savedN:"{n} foto's opgeslagen",readErr:"Foto kan niet gelezen worden. Probeer opnieuw.",
+ close:"Sluiten",confirmDelPhoto:"„{n}” verwijderen?",noPdfModule:"De PDF-module ontbreekt in de app.",pdfErr:"Fout bij het maken van de PDF.",sendNA:"Versturen hier niet beschikbaar.",
+ sendingNow:"Bezig met versturen…",okSent:"Bewijs verstuurd",okDraft:"Opgeslagen bij de concepten",okDraftSub:"Het wordt automatisch verstuurd zodra er weer netwerk is.",okNext:"Volgende levering",sentDraftOk:"Verstuurd ✔ {c}",
+ sendFail:"Versturen mislukt: ",notConfigured:"Automatisch versturen is niet ingesteld.",retryLater:"Geen internet. Probeer later opnieuw.",
+ sendingC:"Versturen: {c}…",myDeliveries:"Mijn leveringen",drafts:"Concepten",sent:"Verstuurd",sendAll:"Alle concepten versturen",noDrafts:"Geen concepten: alles is verstuurd.",noSent:"Nog niets verstuurd.",
+ created:"gemaakt op {d}",sentOn:"verstuurd op {d}",tagCopy:"Kopie: handmatig versturen",tagAuto:"Gaat automatisch weg zodra er internet is",sendBtn:"Versturen",openPdf:"PDF",
+ confirmDelDraft:"Concept „{c}” verwijderen? Het wordt nooit verstuurd.",copy:"Kopie maken",copied:"Kopie opgeslagen bij de concepten ✔",openNA:"Openen hier niet beschikbaar.",
+ netBack:"Internet terug: concepten worden verstuurd…",netGone:"Geen internet: leveringen gaan naar de concepten.",denied:"Toegang geweigerd.",exists:"Deze naam bestaat al.",noPdfApp:"Geen app om PDF's te lezen op deze telefoon.",language:"Taal"},
+ar:{addPhoto:"إضافة صورة",addFree:"إضافة صورة حرّة",freePhoto:"صورة حرّة",freeName:"اسم الصورة",delField:"حذف هذا الحقل",confirmDelField:"حذف «{n}» وصورها؟",obs:"ملاحظات",optional:"اختياري",obsPh:"اكتب ملاحظة حول التوصيل…",appName:"إثبات التسليم",loginSub:"سجّل الدخول لبدء جولتك.",username:"اسم المستخدم",password:"كلمة المرور",login:"تسجيل الدخول",logout:"تسجيل الخروج",showPw:"إظهار كلمة المرور",
+ errEmpty:"أدخل اسم المستخدم وكلمة المرور.",errNoConf:"قاعدة الحسابات غير مُعدّة بعد (مفتاح Supabase مفقود).",errServer:"خطأ في الخادم: ",
+ errOffline:"لا يوجد إنترنت. يجب أن يسجّل هذا الحساب الدخول مرة واحدة بالإنترنت على هذا الهاتف أولاً.",errWrong:"اسم المستخدم أو كلمة المرور غير صحيحة.",sessionEnded:"تم تعديل حسابك أو حذفه. سجّل الدخول من جديد.",
+ welcome:"مرحباً",admin:"الإدارة",adminSub:"إدارة حسابات السائقين.",addDriver:"إضافة سائق",name:"الاسم",add:"إضافة",accounts:"الحسابات",loading:"جارٍ التحميل…",noAccounts:"لا توجد حسابات.",
+ delete:"حذف",confirmDelDriver:"حذف السائق «{n}»؟",driverDeleted:"تم حذف السائق",errorPrefix:"خطأ: ",noNet:"لا يوجد إنترنت.",
+ loadAccErr:"لا يوجد إنترنت: تعذّر تحميل الحسابات.",addRule:"الاسم: حرفان على الأقل. كلمة المرور: 4 على الأقل.",driverAdded:"تمت إضافة السائق «{n}» ✔",
+ useApp:"استخدام التطبيق (اختيار جولة)",chooseTour:"اختر جولتك",chooseTourSub:"تبقى مختارة إلى أن تغيّرها.",tourOf:"جولة {t}",changeTour:"تغيير",
+ gpsSearch:"GPS…",gpsOn:"GPS ± {m} م",gpsOff:"شغّل الموقع",
+ client:"اسم الزبون",clientPh:"يُقرأ من وصل التسليم",ocrHint:"صوّر الوصل: سيُقرأ الاسم تلقائياً.",ocrReading:"جارٍ قراءة وصل التسليم…",
+ ocrNone:"لم يُقرأ أي نص. اكتب اسم الزبون أو أعد التصوير بوضوح أكبر.",ocrFound:"تمت قراءة الاسم من الوصل. تحقّق منه أو اضغط على السطر الصحيح:",ocrPick:"اضغط على السطر الذي يحتوي اسم الزبون:",
+ ocrFail:"تعذّرت القراءة. اكتب اسم الزبون.",typeClient:"اكتب اسم الزبون.",send:"إرسال الإثبات",newDelivery:"توصيل جديد",confirmReset:"حذف كل الصور والبدء من جديد؟",
+ lostPhotos:"ستُفقد صور التوصيل الحالي. هل تريد تسجيل الخروج؟",
+ cat_bon:"وصل التسليم",cat_pat:"حلويات",cat_kk:"كعك القهوة",cat_sand:"سندويتش",cat_pain:"خبز",required:"إلزامي",empty:"لا توجد صور",takePhoto:"التقاط صورة",gallery:"المعرض",
+ needBon:"التقط صورة واحدة على الأقل لوصل التسليم.",needClient:"أدخل اسم الزبون.",ready:"جاهز: {n} في المجموع",progress:"{n}/{m} فئات",
+ processing:"جارٍ معالجة الصورة…",processingN:"جارٍ معالجة {n} صور…",saved1:"تم حفظ الصورة",savedN:"تم حفظ {n} صور",readErr:"تعذّرت قراءة الصورة. حاول مجدداً.",
+ close:"إغلاق",confirmDelPhoto:"حذف «{n}»؟",noPdfModule:"وحدة PDF غير موجودة في التطبيق.",pdfErr:"خطأ أثناء إنشاء ملف PDF.",sendNA:"الإرسال غير متاح هنا.",
+ sendingNow:"جارٍ الإرسال…",okSent:"تم إرسال الإثبات",okDraft:"حُفظ في المسودات",okDraftSub:"سيُرسل تلقائياً فور عودة الشبكة.",okNext:"التوصيل التالي",sentDraftOk:"تم الإرسال ✔ {c}",
+ sendFail:"تعذّر الإرسال: ",notConfigured:"الإرسال التلقائي غير مُعدّ.",retryLater:"لا يوجد إنترنت. حاول لاحقاً.",
+ sendingC:"إرسال: {c}…",myDeliveries:"توصيلاتي",drafts:"المسودات",sent:"المُرسلة",sendAll:"إرسال كل المسودات",noDrafts:"لا توجد مسودات: تم إرسال كل شيء.",noSent:"لم يُرسل شيء بعد.",
+ created:"أُنشئ في {d}",sentOn:"أُرسل في {d}",tagCopy:"نسخة: إرسال يدوي",tagAuto:"يُرسل تلقائياً عند توفّر الإنترنت",sendBtn:"إرسال",openPdf:"PDF",
+ confirmDelDraft:"حذف المسودة «{c}»؟ لن تُرسل أبداً.",copy:"إنشاء نسخة",copied:"حُفظت النسخة في المسودات ✔",openNA:"الفتح غير متاح هنا.",
+ netBack:"عاد الإنترنت: جارٍ إرسال المسودات…",netGone:"لا يوجد إنترنت: ستذهب التوصيلات إلى المسودات.",denied:"تم رفض الوصول.",exists:"هذا الاسم موجود مسبقاً.",noPdfApp:"لا يوجد تطبيق لقراءة PDF على هذا الهاتف.",language:"اللغة"}
+};
+let lang = (()=>{ try{ const l=JSON.parse(localStorage.getItem("pl_lang")); return LANGS[l]?l:"fr"; }catch(e){ return "fr"; } })();
+function t(k,v){ let s=(I18N[lang]&&I18N[lang][k]!=null)?I18N[lang][k]:(I18N.fr[k]!=null?I18N.fr[k]:k); if(v) for(const x in v) s=s.split("{"+x+"}").join(v[x]); return s; }
+function plN(n){ const w={fr:n>1?"photos":"photo",en:n>1?"photos":"photo",nl:n>1?"foto's":"foto",ar:n===1?"صورة":"صور"}[lang]; return n+" "+w; }
+function srvMsg(m){ if(/existe d[ée]j[àa]/i.test(m||"")) return t("exists"); if(/refus/i.test(m||"")) return t("denied"); return m; }
+window.t=t;
+/* ================================================== */
+
+const $ = id => document.getElementById(id);
+/* ---------- Pont « web » (iPhone) : remplace les fonctions Android ---------- */
+const WebBridge = {
+  mailReady(){ return !!MAIL_URL; },
+  sendPdfMail(b64, filename, subject, body){
+    fetch(MAIL_URL,{method:"POST",body:JSON.stringify({user:me&&me.user, pass:me&&me.pass, b64, filename, subject, body})})
+      .then(r=>r.json()).then(j=>window.onMailResult(!!j.ok, j.error||""))
+      .catch(()=>window.onMailResult(false, t("noNet")));
+  },
+  reverseGeocode(id, lat, lon){
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language=fr&lat=${lat}&lon=${lon}`)
+      .then(r=>r.json()).then(j=>{ const a=j.address||{};
+        const street=[a.road||a.pedestrian||a.footway||a.square, a.house_number].filter(Boolean).join(" ");
+        const city=[a.postcode, a.city||a.town||a.village||a.municipality||a.suburb].filter(Boolean).join(" ");
+        window.onAddress(id, [street,city].filter(Boolean).join(", ") || j.display_name || ""); })
+      .catch(()=>window.onAddress(id,""));
+  },
+  _ocr:null,
+  ocrImage(b64){
+    if(!navigator.onLine && !this._ocr){ window.onOcrError(); return; }
+    const load = window.Tesseract ? Promise.resolve() : new Promise((res,rej)=>{ const sc=document.createElement("script"); sc.src="ocr/tesseract.min.js"; sc.onload=res; sc.onerror=rej; document.head.appendChild(sc); });
+    load.then(()=> this._ocr || (this._ocr = Tesseract.createWorker("eng",1,{workerPath:"ocr/worker.min.js", corePath:"ocr/core", langPath:"ocr/lang"})))
+      .then(w=>w.recognize("data:image/jpeg;base64,"+b64))
+      .then(({data})=>{ const items=[]; (data.lines||[]).forEach(l=>{ const tx=(l.text||"").trim(); if(tx) items.push({t:tx, top:l.bbox.y0, h:l.bbox.y1-l.bbox.y0}); });
+        window.onOcrResult(items); })
+      .catch(()=>window.onOcrError());
+  },
+  _file(b64, filename){ const bin=atob(b64), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new File([u],filename,{type:"application/pdf"}); },
+  openPdf(b64, filename){ const f=this._file(b64,filename);
+    if(navigator.canShare && navigator.canShare({files:[f]})) navigator.share({files:[f], title:filename}).catch(()=>{});
+    else window.open(URL.createObjectURL(f),"_blank"); },
+  sharePdf(b64, filename, to, subject, body){ const f=this._file(b64,filename);
+    if(navigator.canShare && navigator.canShare({files:[f]})) navigator.share({files:[f], title:subject, text:body}).catch(()=>{});
+    else { const a=document.createElement("a"); a.href=URL.createObjectURL(f); a.download=filename; a.click(); } }
+};
+const A = window.Android || WebBridge;
+let me=null, tour=null, photos={}, extras=[], lastPos=null, lbCur=null, sending=null, autoAll=false, drTab="dr", ocrKey="ocrHint", gpsState=null;
+
+function el(tag,cls,text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
+function ico(id,size){ const s=document.createElementNS("http://www.w3.org/2000/svg","svg"); s.setAttribute("class","i"); if(size){ s.style.width=size+"px"; s.style.height=size+"px"; }
+  const u=document.createElementNS("http://www.w3.org/2000/svg","use"); u.setAttribute("href","#"+id); s.appendChild(u); return s; }
+function toast(msg, ms=3000){ const x=$("toast"); x.textContent=msg; x.classList.add("show"); clearTimeout(x._h); x._h=setTimeout(()=>x.classList.remove("show"),ms); }
+window.toast=toast;
+function pad(n){return String(n).padStart(2,"0")}
+function fmtDate(d){return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`}
+function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+function busy(on){ document.body.classList.toggle("busy",!!on); }
+function cur(){ return ["sLogin","sAdmin","sTour","sMain"].find(s=>!$(s).hidden); }
+function show(id){ ["sLogin","sAdmin","sTour","sMain"].forEach(s=>$(s).hidden=(s!==id)); $("btnMenu").hidden=(id!=="sMain"); renderWho(); window.scrollTo(0,0); }
+
+/* ---------- Barre du haut + langue ---------- */
+function renderWho(){
+  const w=$("who"); w.innerHTML=""; if(!me) return;
+  const av=el("span","av",me.user.charAt(0)); av.setAttribute("aria-hidden","true");
+  const nm=el("span","nm",me.user); nm.dir="auto";
+  w.append(av,nm); if(me.role==="admin") w.appendChild(el("span","rolet","admin"));
+}
+function renderLangMenu(){
+  const m=$("langMenu"); m.innerHTML="";
+  Object.keys(LANGS).forEach(k=>{ const b=el("button",k===lang?"on":""); b.setAttribute("lang",k);
+    b.append(el("span",null,LANGS[k]), el("small",null,k.toUpperCase())); b.onclick=()=>{ setLang(k); m.hidden=true; }; m.appendChild(b); });
+}
+$("btnLang").onclick=e=>{ e.stopPropagation(); const m=$("langMenu"); if(m.hidden){ renderLangMenu(); m.hidden=false; } else m.hidden=true; };
+document.addEventListener("click",e=>{ const m=$("langMenu"); if(!m.hidden && !m.contains(e.target)) m.hidden=true; });
+function setLang(k){ lang=k; lsSet("pl_lang",k); applyLang(); }
+function applyLang(){
+  document.documentElement.lang=lang; document.documentElement.dir=(lang==="ar")?"rtl":"ltr";
+  document.title=t("appName"); $("langCode").textContent=lang.toUpperCase(); $("btnLang").setAttribute("aria-label",t("language"));
+  document.querySelectorAll("[data-i18n]").forEach(e=>e.textContent=t(e.dataset.i18n));
+  document.querySelectorAll("[data-i18n-ph]").forEach(e=>e.placeholder=t(e.dataset.i18nPh));
+  document.querySelectorAll("[data-i18n-aria]").forEach(e=>e.setAttribute("aria-label",t(e.dataset.i18nAria)));
+  const s=cur();
+  if(s==="sMain"){ renderMainHead(); renderCats(); renderGps(); setOcr(ocrKey); }
+  if(s==="sTour") openTour();
+  if(s==="sAdmin") loadAccounts();
+  if(drawerOpen()) refreshDrawer(); else if(me) refreshCounts();
+  if(lbCur) $("lbCap").textContent=uiLabel(lbCur.c,lbCur.p);
+}
+
+/* ---------- Écran plein : bienvenue / confirmation ---------- */
+function overlay(o){
+  const v=$("over"); clearTimeout(v._h);
+  v.classList.toggle("okc",!!o.ok); v.classList.remove("out");
+  $("ovLogo").hidden=!o.logo; $("ovStamp").hidden=!!o.logo;
+  $("ov1").textContent=o.l1||""; $("ov2").textContent=o.l2||""; $("ov2").dir="auto"; $("ov3").textContent=o.l3||"";
+  const b=$("ovBtn"); b.hidden=!o.btn; if(o.btn) b.textContent=o.btn;
+  v.hidden=false;
+  const end=()=>{ if(v.hidden) return; v.classList.add("out"); setTimeout(()=>{ v.hidden=true; v.classList.remove("out"); },320); };
+  v.onclick=end; b.onclick=e=>{ e.stopPropagation(); end(); };
+  if(o.ms) v._h=setTimeout(end,o.ms);
+}
+function welcome(){ overlay({logo:true, l1:t("welcome"), l2:me.user, l3: me.role==="admin"?t("admin"):(tour?t("tourOf",{t:tour}):""), ms:1800}); }
+
+/* ---------- Serveur des comptes (Supabase) ---------- */
+async function sbRpc(fn, body){
+  if(!SB_URL || !SB_KEY) throw new Error("NOCONF");
+  const h={"apikey":SB_KEY,"Content-Type":"application/json"};
+  if(!SB_KEY.startsWith("sb_")) h["Authorization"]="Bearer "+SB_KEY;
+  const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:"POST",headers:h,body:JSON.stringify(body)});
+  const txt=await r.text(); let data=null; try{ data=txt?JSON.parse(txt):null; }catch(e){}
+  if(!r.ok){ const e=new Error((data&&data.message)||txt||("Erreur "+r.status)); e.server=true; throw e; }
+  return data;
+}
+async function sha(x){ const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(x)); return [...new Uint8Array(b)].map(v=>v.toString(16).padStart(2,"0")).join(""); }
+
+/* ---------- Connexion (reste connecté jusqu'à « Déconnexion ») ---------- */
+async function doLogin(){
+  const u=$("lu").value.trim(), p=$("lp").value, err=m=>{$("lErr").textContent=m;};
+  if(!u||!p){ err(t("errEmpty")); return; }
+  err(""); busy(true);
+  const key="pl_cred_"+u.toLowerCase(), h=await sha(u.toLowerCase()+"|"+p);
+  let role=null;
+  try{
+    role=await sbRpc("pl_login",{p_user:u,p_pass:p});
+    if(role) lsSet(key,{h,role}); else lsDel(key);
+  }catch(e){
+    if(e.message==="NOCONF"){ busy(false); err(t("errNoConf")); return; }
+    if(e.server){ busy(false); err(t("errServer")+srvMsg(e.message)); return; }
+    const c=lsGet(key);
+    if(c && c.h===h) role=c.role; else { busy(false); err(t("errOffline")); return; }
+  }
+  busy(false);
+  if(!role){ err(t("errWrong")); return; }
+  me={user:u, key:u.toLowerCase(), role, pass:p};
+  lsSet("pl_session",me);
+  $("lp").value="";
+  startSession();
+}
+function startSession(){
+  tour=lsGet("pl_tour_"+me.key); if(!TOURS.includes(tour)) tour=null;
+  if(me.role==="admin") openAdmin(); else afterLogin();
+  welcome();
+}
+async function checkSession(){            // compte supprimé ou mot de passe changé → retour à la connexion
+  if(!me || !navigator.onLine) return;
+  try{ const role=await sbRpc("pl_login",{p_user:me.user,p_pass:me.pass});
+    if(!role){ endSession(); $("lErr").textContent=t("sessionEnded"); }
+    else if(role!==me.role){ me.role=role; lsSet("pl_session",me); renderWho(); }
+  }catch(e){}
+}
+function afterLogin(){ if(tour) openMain(); else openTour(); }
+function endSession(){ closeDrawer(); lsDel("pl_session"); me=null; tour=null; resetDelivery(); show("sLogin"); }
+function logout(){ if(hasPhotos() && !confirm(t("lostPhotos"))) return; $("lErr").textContent=""; endSession(); }
+$("btnLogin").onclick=doLogin;
+$("lp").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
+$("lu").addEventListener("keydown",e=>{ if(e.key==="Enter") $("lp").focus(); });
+$("pwEye").onclick=()=>{ const i=$("lp"); i.type = i.type==="password" ? "text" : "password"; };
+
+/* ---------- Administration ---------- */
+function openAdmin(){ show("sAdmin"); loadAccounts(); }
+async function loadAccounts(){
+  const box=$("acctList"); box.innerHTML=""; box.appendChild(el("p","ocr",t("loading")));
+  try{
+    const rows=await sbRpc("pl_admin_list",{a_user:me.user,a_pass:me.pass}) || [];
+    box.innerHTML="";
+    if(!rows.length){ box.appendChild(el("p","ocr",t("noAccounts"))); return; }
+    rows.forEach(r=>{
+      const row=el("div","acct");
+      const av=el("span","av",r.username.charAt(0));
+      const tx=el("div","tx"); const u=el("div","u",r.username); u.dir="auto";
+      if(r.role==="admin") u.appendChild(el("span","chip-role","admin"));
+      tx.append(u, el("div","pw",r.password));
+      row.append(av,tx);
+      if(r.role!=="admin"){
+        const d=el("button","del"); d.appendChild(ico("i-trash",20)); d.setAttribute("aria-label",t("delete")+" "+r.username);
+        d.onclick=async()=>{ if(!confirm(t("confirmDelDriver",{n:r.username}))) return;
+          try{ await sbRpc("pl_admin_delete",{a_user:me.user,a_pass:me.pass,p_user:r.username}); toast(t("driverDeleted")); loadAccounts(); }
+          catch(e){ toast(t("errorPrefix")+(e.server?srvMsg(e.message):t("noNet")),5000); } };
+        row.appendChild(d);
+      }
+      box.appendChild(row);
+    });
+  }catch(e){ box.innerHTML=""; box.appendChild(el("p","err", e.server?(t("errorPrefix")+srvMsg(e.message)):t("loadAccErr"))); }
+}
+$("btnAdd").onclick=async()=>{
+  const u=$("nu").value.trim(), p=$("np").value.trim();
+  if(u.length<2 || p.length<4){ $("adErr").textContent=t("addRule"); return; }
+  $("adErr").textContent=""; busy(true);
+  try{ await sbRpc("pl_admin_add",{a_user:me.user,a_pass:me.pass,p_user:u,p_pass:p}); $("nu").value=""; $("np").value=""; toast(t("driverAdded",{n:u})); loadAccounts(); }
+  catch(e){ $("adErr").textContent = e.server ? srvMsg(e.message) : t("noNet"); }
+  busy(false);
+};
+$("adLogout").onclick=logout;
+$("adUse").onclick=afterLogin;
+
+/* ---------- Choix du tour ---------- */
+function openTour(){
+  show("sTour");
+  const g=$("tourGrid"); g.innerHTML="";
+  TOURS.forEach(x=>{
+    const b=el("button","tile"+(x===tour?" cur":""));
+    b.appendChild(el("span","tn h",x));
+    if(x===tour){ const ti=el("span","ti"); ti.appendChild(ico("i-check",16)); b.appendChild(ti); } b.onclick=()=>chooseTour(x); g.appendChild(b);
+  });
+}
+function chooseTour(x){
+  const changed = tour && tour!==x; tour=x; lsSet("pl_tour_"+me.key,x);
+  if(changed) allPhotos().forEach(shrink);
+  openMain();
+}
+$("tLogout").onclick=logout;
+$("btnTour").onclick=openTour;
+
+/* ---------- Écran de livraison ---------- */
+function renderMainHead(){
+  $("mTour").textContent=tour;
+  $("mDate").textContent=new Date().toLocaleDateString(LOCALE[lang],{weekday:"long",day:"numeric",month:"long"});
+}
+function openMain(){
+  show("sMain"); renderMainHead(); setOcr(ocrKey);
+  if(!Object.keys(photos).length) resetDelivery();
+  renderCats(); renderGps(); getPos(); startWatch(); refreshCounts();
+  setTimeout(()=>sendAllDrafts(true),1500);
+}
+function setOcr(k){ ocrKey=k; $("ocrTxt").textContent=k?t(k):""; }
+function cats(){ return CATS.concat(extras); }
+function resetDelivery(){ photos={}; extras=[]; CATS.forEach(c=>photos[c.key]=[]); $("client").value=""; $("obs").value=""; $("chips").innerHTML=""; setOcr("ocrHint"); }
+function allPhotos(){ return cats().flatMap(c=>photos[c.key]||[]); }
+function obsText(){ return ($("obs").value||"").trim(); }
+function hasPhotos(){ return allPhotos().length>0; }
+function clientName(){ return ($("client").value||"").trim(); }
+function safeName(x){ return x.replace(/[\\/:*?"<>|]+/g,"").replace(/\s+/g,"_").slice(0,60)||"Client"; }
+function catUi(c){ return c.custom ? (c.name.trim()||t("freePhoto")) : t("cat_"+c.key); }
+function catDoc(c){ return c.custom ? (c.name.trim()||"Photo libre") : c.name; }
+function uiLabel(c,p){ return catUi(c)+" "+(photos[c.key].indexOf(p)+1); }
+function docLabel(c,p){ return catDoc(c)+" "+(photos[c.key].indexOf(p)+1); }
+$("btnFree").onclick=()=>{
+  const key="x"+Date.now(); extras.push({key, name:t("freePhoto")+" "+(extras.length+1), custom:true, icon:"i-img"}); photos[key]=[];
+  renderCats(); const inp=document.querySelector(`[data-key="${key}"] .cat-name`); if(inp){ inp.focus(); inp.select(); inp.scrollIntoView({block:"center"}); }
+};
+$("client").addEventListener("input",updateSend);
+$("btnReset").onclick=()=>{ if(hasPhotos() && !confirm(t("confirmReset"))) return; resetDelivery(); renderCats(); };
+
+function renderCats(){
+  const box=$("cats"); box.innerHTML="";
+  cats().forEach(c=>{
+    const arr=photos[c.key];
+    const card=el("div","card cat"+(arr.length?" done":"")); card.dataset.key=c.key;
+    const h=el("div","cat-h");
+    const ic=el("div","cat-ic"); ic.appendChild(ico(c.icon,24));
+    if(arr.length){ const ck=el("span","ck"); ck.appendChild(ico("i-check")); ic.appendChild(ck); }
+    const tx=el("div","cat-t"); let n;
+    if(c.custom){ n=document.createElement("input"); n.className="cat-name"; n.type="text"; n.value=c.name; n.dir="auto"; n.setAttribute("aria-label",t("freeName"));
+      n.oninput=()=>{ c.name=n.value; }; }
+    else { n=el("div","cat-n",t("cat_"+c.key)); if(c.required) n.appendChild(el("span","req"," *")); }
+    tx.append(n, el("div","cat-s"+(c.required&&!arr.length?" req":""), arr.length ? plN(arr.length) : (c.required?t("required"):t("empty"))));
+    h.append(ic,tx);
+    if(c.custom){ const d=el("button","catdel"); d.appendChild(ico("i-trash",19)); d.setAttribute("aria-label",t("delField"));
+      d.onclick=()=>{ if(arr.length && !confirm(t("confirmDelField",{n:catUi(c)}))) return; extras=extras.filter(x=>x!==c); delete photos[c.key]; renderCats(); };
+      h.appendChild(d); }
+    const th=el("div","thumbs");
+    arr.forEach(p=>{ const b=el("button","th"); b.setAttribute("aria-label",uiLabel(c,p)); const im=new Image(); im.src=p.img; im.alt=""; b.appendChild(im); b.onclick=()=>openLb(c,p); th.appendChild(b); });
+    const acts=el("div","acts");
+    acts.append(pickBtn(c,"a-cam",arr.length?"i-plus":"i-cam",arr.length?t("addPhoto"):t("takePhoto"),true), pickBtn(c,"a-gal","i-img",t("gallery"),false));
+    card.append(h,th,acts); box.appendChild(card);
+  });
+  updateSend();
+}
+function pickBtn(c,cls,icon,text,camera){
+  const lb=el("label",cls); lb.appendChild(ico(icon,20)); lb.appendChild(el("span",null,text));
+  const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*"; inp.className="vh";
+  if(camera) inp.setAttribute("capture","environment"); else inp.multiple=true;
+  inp.onchange=e=>{ const fs=[...e.target.files]; inp.value=""; if(fs.length) handleFiles(c,fs); };
+  lb.appendChild(inp); return lb;
+}
+function updateSend(){
+  const nb=photos.bon?photos.bon.length:0, total=allPhotos().length, cl=clientName().length>0;
+  $("btnSend").disabled=!(nb>0 && cl);
+  $("sendNote").textContent = !nb ? t("needBon") : !cl ? t("needClient") : t("ready",{n:plN(total)});
+  const all=cats(), done=all.filter(c=>photos[c.key]&&photos[c.key].length).length;
+  const pr=$("prog"); pr.innerHTML=""; all.forEach(c=>pr.appendChild(el("i",photos[c.key]&&photos[c.key].length?"on":"")));
+  $("progTxt").textContent=t("progress",{n:done,m:all.length});
+}
+
+/* ---------- GPS + adresse ---------- */
+function getPos(){
+  return new Promise(res=>{
+    if(!navigator.geolocation){ setGps(false); res(null); return; }
+    navigator.geolocation.getCurrentPosition(p=>{ lastPos=p; setGps(true); res(p); }, ()=>{ setGps(!!lastPos); res(lastPos); },
+      {enableHighAccuracy:true, timeout:12000, maximumAge:30000});
+  });
+}
+function startWatch(){ if(navigator.geolocation && !window._watch) window._watch=navigator.geolocation.watchPosition(p=>{lastPos=p;setGps(true)},()=>{if(!lastPos)setGps(false)},{enableHighAccuracy:true,maximumAge:30000}); }
+function setGps(ok){ gpsState=ok; renderGps(); }
+function renderGps(){
+  $("gpsPill").className="pill"+(gpsState===null?"":(gpsState?" ok":" bad"));
+  $("gpsTxt").textContent = gpsState===null ? t("gpsSearch") : (gpsState && lastPos ? t("gpsOn",{m:Math.round(lastPos.coords.accuracy)}) : t("gpsOff"));
+}
+function quickPos(){
+  if(lastPos && Date.now()-lastPos.timestamp<60000) return Promise.resolve(lastPos);
+  return Promise.race([getPos(), new Promise(r=>setTimeout(()=>r(lastPos),6000))]);
+}
+const addrCbs={};
+window.onAddress=function(id,txt){ const cb=addrCbs[id]; if(cb){ delete addrCbs[id]; cb(txt||null); } };
+function getAddress(pos){
+  if(!pos || !A || !A.reverseGeocode || !navigator.onLine) return Promise.resolve(null);
+  return new Promise(res=>{ const id="a"+Date.now()+Math.floor(Math.random()*1e6); addrCbs[id]=res;
+    setTimeout(()=>{ if(addrCbs[id]){ delete addrCbs[id]; res(null); } },8000);
+    A.reverseGeocode(id, pos.coords.latitude, pos.coords.longitude); });
+}
+
+/* ---------- Photos ---------- */
+function loadImg(src){ return new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=src; }); }
+async function handleFiles(c, files){
+  try{ await document.fonts.load('800 40px Archivo'); }catch(e){}
+  busy(true); toast(files.length>1?t("processingN",{n:files.length}):t("processing"),20000);
+  try{
+    const pos=await quickPos(), addr=await getAddress(pos);
+    for(const f of files){
+      const img=await loadImg(URL.createObjectURL(f));
+      const arr=photos[c.key], first=(c.key==="bon" && arr.length===0);
+      const p={ id:"p"+Date.now()+Math.random().toString(36).slice(2,7), raw:img,
+        meta:{ when:fmtDate(new Date()), date:Date.now(), addr, acc: pos?pos.coords.accuracy:null,
+          gps: pos?`${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)} (±${Math.round(pos.coords.accuracy)} m)`:null,
+          lat: pos?pos.coords.latitude:null, lon: pos?pos.coords.longitude:null } };
+      shrink(p); arr.push(p);
+      if(first && !clientName()) runOcr(p);
+    }
+    toast((files.length>1?t("savedN",{n:files.length}):t("saved1"))+" ✔");
+  }catch(e){ toast(t("readErr")); }
+  busy(false); renderCats();
+}
+// Horodatage sur la photo, style « Timestamp Camera » : texte blanc ombré, sans bandeau
+const JOURS=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+function shrink(p){
+  const im=p.raw, MAX=1600, k=Math.min(1,MAX/Math.max(im.naturalWidth,im.naturalHeight));
+  const w=Math.round(im.naturalWidth*k), h=Math.round(im.naturalHeight*k);
+  const cv=document.createElement("canvas"); cv.width=w; cv.height=h; const g=cv.getContext("2d");
+  g.drawImage(im,0,0,w,h);
+  const d=p.meta.date ? new Date(p.meta.date) : new Date();
+  const U=Math.min(w,h)/100;                       // unité proportionnelle à la photo
+  const big=U*9.5, mid=U*3.6, small=U*3.1, pad=U*4, F="Archivo, Roboto, Arial, sans-serif";
+  g.textBaseline="alphabetic"; g.direction="ltr"; g.lineJoin="round";
+  const txt=(s,x,y,font,color)=>{ g.font=font;
+    g.shadowColor="rgba(0,0,0,.75)"; g.shadowBlur=U*1.2; g.shadowOffsetX=0; g.shadowOffsetY=U*0.25;
+    g.strokeStyle="rgba(0,0,0,.45)"; g.lineWidth=Math.max(1.5,U*0.35); g.strokeText(s,x,y);
+    g.shadowColor="transparent"; g.fillStyle=color||"#fff"; g.fillText(s,x,y); };
+  // lignes du bas (de bas en haut)
+  const lines=[];
+  lines.push(`Tour ${tour}  •  ${me.user}`);
+  if(p.meta.gps) lines.push(`GPS ${p.meta.lat.toFixed(6)}, ${p.meta.lon.toFixed(6)}  ±${Math.round(p.meta.acc||0)} m`); else lines.push("GPS non disponible");
+  if(p.meta.addr){ const parts=p.meta.addr.split(", "); for(let i=parts.length-1;i>=0;i--) lines.push(parts[i]); }
+  let y=h-pad;
+  lines.forEach((l,i)=>{ txt(l,pad,y,`${i===0?600:500} ${i<2?small:mid}px ${F}`, i===0?"rgba(255,255,255,.9)":"#fff"); y-=(i<2?small:mid)*1.45; });
+  // heure en grand + barre jaune + date / jour
+  y-=U*1.5;
+  const hm=`${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  g.font=`800 ${big}px ${F}`; const tw=g.measureText(hm).width;
+  txt(hm,pad,y,`800 ${big}px ${F}`);
+  const bx=pad+tw+U*2.2;
+  g.shadowColor="rgba(0,0,0,.6)"; g.shadowBlur=U; g.fillStyle="#F2A900"; g.fillRect(bx,y-big*0.74,U*0.9,big*0.78); g.shadowColor="transparent";
+  txt(`${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}`,bx+U*2.5,y-big*0.42,`700 ${mid}px ${F}`);
+  txt(JOURS[d.getDay()],bx+U*2.5,y,`500 ${mid}px ${F}`);
+  p.img=cv.toDataURL("image/jpeg",0.82); p.w=w; p.h=h;
+}
+function pad2(n){ return String(n).padStart(2,"0"); }
+
+/* ---------- Visionneuse ---------- */
+function openLb(c,p){ lbCur={c,p}; $("lbImg").src=p.img; $("lbCap").textContent=uiLabel(c,p); $("lb").hidden=false; }
+function closeLb(){ $("lb").hidden=true; $("lbImg").src=""; lbCur=null; }
+$("lbClose").onclick=closeLb;
+$("lbDel").onclick=()=>{ if(!lbCur) return; if(!confirm(t("confirmDelPhoto",{n:uiLabel(lbCur.c,lbCur.p)}))) return;
+  const arr=photos[lbCur.c.key]; const i=arr.indexOf(lbCur.p); if(i>=0) arr.splice(i,1); closeLb(); renderCats(); };
+
+/* ---------- OCR : nom du client ---------- */
+const CLIENT_KEYS=/^(client|klant|naam|nom|destinataire|livr[ée] à|leveradres|afleveradres|leveren aan|deliver to|ship to)(?=[\s:.\-]|$)\s*[:.\-]?\s*(.*)$/i;
+const HEADER_WORDS=/leveringsnota|levdatum|klant|bonnr|\bblz\b|omschrijving|\bcode\b|pr\.?\s?(in|ex)\b|waarde|factuur|bestel|datum|totaal|btw|\bbest\b|\bover\b|\blev\b|hoev|verpakking|verdeellijst|lotnummer|artikelcode|lactose|gluten|\btel\b|e-?mail|bakkerij|mechelen|via gps|kanaaldijk|schoten/i;
+const ADDRESS=/\b\d{4}\s+[A-Za-zÀ-ÿ]|straat|laan|plein|\blei\b|\bweg\b|\brue\b|avenue|^B-\d{4}/i;
+const CUST_CODE=/\s*\bBE\s?[0-9O]{5,7}\b.*$/i;
+function cleanName(x){
+  x=x.replace(CUST_CODE,"").replace(/\(\s*\d+\s*\)\s*$/,"").replace(/^verdeelgroep\s*\d*\s*[-–:]\s*/i,"").trim();
+  if(x===x.toUpperCase() && /[A-Z]/.test(x)) x=x.toLowerCase().replace(/(^|[\s.\-'])([a-zà-ÿ])/g,(m,p1,p2)=>p1+p2.toUpperCase());
+  return x;
+}
+function runOcr(p){
+  if(!(A && A.ocrImage)){ setOcr("typeClient"); return; }
+  setOcr("ocrReading"); $("chips").innerHTML="";
+  const im=p.raw, MAX=2000, k=Math.min(1,MAX/Math.max(im.naturalWidth,im.naturalHeight));
+  const cv=document.createElement("canvas"); cv.width=Math.round(im.naturalWidth*k); cv.height=Math.round(im.naturalHeight*k);
+  cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);
+  A.ocrImage(cv.toDataURL("image/jpeg",0.9).split(",")[1]);
+}
+window.onOcrResult=function(items){
+  items=(items||[]).map(x=>typeof x==="string"?{t:x,top:0,h:0}:x).map(x=>({t:String(x.t||"").trim(),top:+x.top||0,h:+x.h||0})).filter(x=>x.t);
+  if(!items.length){ setOcr("ocrNone"); return; }
+  items.sort((x,y)=>x.top-y.top); items.forEach(it=>{ it.c=cleanName(it.t); });
+  const wordy=x=>{ const w=x.split(/\s+/).filter(Boolean); const L=w.map(v=>v.replace(/[^A-Za-zÀ-ÿ]/g,"").length); return Math.max(0,...L)>=4 && L.reduce((a,b)=>a+b,0)/w.length>=2.6; };
+  const ok=it=>it.c.length>=3 && (it.c.match(/[A-Za-zÀ-ÿ]/g)||[]).length>=3 && wordy(it.c) && !HEADER_WORDS.test(it.c) && !ADDRESS.test(it.c) && !/\d{3,}/.test(it.c);
+  let guess="";
+  for(const it of items){ if(/verdeelgroep/i.test(it.t) && ok(it)){ guess=it.c; break; } }
+  if(!guess) for(const it of items){ if(/\bBE\s?[0-9O]{5,7}\b/i.test(it.t) && !/\d\.\d{3}\.\d{3}/.test(it.t) && ok(it)){ guess=it.c; break; } }
+  if(!guess) for(const it of items){ const m=it.t.match(CLIENT_KEYS); if(m && m[2] && m[2].trim().length>1 && !HEADER_WORDS.test(m[2]) && !/^\d+$/.test(m[2].trim())){ guess=cleanName(m[2]); break; } }
+  const cands=items.filter(ok);
+  if(!guess && cands.length){
+    const minT=items[0].top, span=Math.max(1,items[items.length-1].top-minT); let best=null, bs=-1;
+    cands.forEach(it=>{ let sc=it.h; if((it.top-minT)/span<0.4) sc*=1.4; if(sc>bs){bs=sc; best=it;} });
+    if(best) guess=best.c;
+  }
+  const input=$("client"); if(guess) input.value=guess;
+  setOcr(guess?"ocrFound":"ocrPick");
+  const box=$("chips"); box.innerHTML=""; const seen=new Set();
+  cands.slice().sort((x,y)=>y.h-x.h).filter(it=>it.c.length<=45 && !seen.has(it.c) && seen.add(it.c)).slice(0,12).forEach(it=>{
+    const b=el("button","chip",it.c); b.type="button"; b.dir="auto"; b.onclick=()=>{ input.value=it.c; updateSend(); }; box.appendChild(b); });
+  updateSend();
+};
+window.onOcrError=function(){ setOcr("ocrFail"); };
+
+/* ---------- PDF (en français, pour le bureau) ---------- */
+function buildPdf(){
+  const { jsPDF } = window.jspdf; const doc=new jsPDF({unit:"mm",format:"a4"});
+  const now=new Date(), client=clientName(), all=allPhotos();
+  const NAVY=[13,34,56], AMBER=[242,169,0], GREY=[81,101,122];
+  doc.setProperties({title:`Preuve de livraison – ${client}`});
+  // en-tête
+  doc.setFillColor(...NAVY); doc.rect(0,0,210,44,"F");
+  doc.setFillColor(...AMBER); doc.rect(0,44,210,2.2,"F");
+  doc.setTextColor(255); doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.text("PREUVE DE LIVRAISON",15,15);
+  doc.setFont("helvetica","bold"); doc.setFontSize(22); doc.text(doc.splitTextToSize(client,170)[0],15,28);
+  doc.setFont("helvetica","normal"); doc.setFontSize(11); doc.text(`Tour ${tour}  •  ${fmtDate(now)}`,15,37);
+  // infos
+  doc.setTextColor(0); let y=60;
+  [["Client",client],["Tour",tour],["Chauffeur",me.user],["Date",fmtDate(now)],["Photos",String(all.length)]].forEach(([k,v])=>{
+    doc.setFont("helvetica","normal"); doc.setTextColor(...GREY); doc.setFontSize(10); doc.text(k,15,y);
+    doc.setFont("helvetica","bold"); doc.setTextColor(0); doc.setFontSize(12); doc.text(String(v),55,y); y+=9; });
+  const obs=obsText();
+  if(obs){
+    doc.setFont("helvetica","normal"); doc.setTextColor(...GREY); doc.setFontSize(10); doc.text("Observations",15,y);
+    doc.setTextColor(0); doc.setFontSize(11.5); const L=doc.splitTextToSize(obs,140);
+    const hh=L.length*5.6+6; doc.setFillColor(253,241,210); doc.roundedRect(53,y-5,142,hh,2,2,"F");
+    doc.text(L,56,y); y+=hh+3;
+  }
+  y+=4; doc.setDrawColor(215,223,231); doc.line(15,y,195,y); y+=9;
+  doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.text("Photos",15,y); y+=8;
+  doc.setFontSize(10);
+  const items=[]; cats().forEach(c=>photos[c.key].forEach(p=>items.push({c,p,label:docLabel(c,p)})));
+  items.forEach(({p,label})=>{
+    if(y>282){ doc.addPage(); y=20; }
+    doc.setFont("helvetica","bold"); doc.text(doc.splitTextToSize(label,52)[0],15,y);
+    doc.setFont("helvetica","normal"); doc.setTextColor(...GREY);
+    const L=doc.splitTextToSize(`${p.meta.when}${p.meta.addr?"  •  "+p.meta.addr:""}`,125); doc.text(L,70,y); doc.setTextColor(0);
+    y+=5*L.length+3; });
+  // pages photo : un cadre en haut avec les infos, la photo en dessous sans rien dessus
+  items.forEach(({p,label},i)=>{
+    doc.addPage();
+    doc.setDrawColor(...NAVY); doc.setLineWidth(0.5); doc.roundedRect(15,10,180,25,2.5,2.5,"S");
+    doc.setFillColor(...AMBER); doc.rect(19,14.5,1.6,16,"F");
+    doc.setTextColor(...NAVY); doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.text(doc.splitTextToSize(label,130)[0],24,18);
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(...GREY); doc.text(`${i+1} / ${items.length}`,191,18,{align:"right"});
+    doc.setTextColor(0); doc.setFontSize(9.5);
+    doc.text(doc.splitTextToSize(`${p.meta.when}  •  Tour ${tour}  •  ${me.user}  •  ${p.meta.addr||"Adresse non disponible"}`,166)[0],24,24.5);
+    doc.setTextColor(...GREY); doc.text(p.meta.gps?"GPS "+p.meta.gps:"GPS non disponible",24,30);
+    if(p.meta.lat!=null){ doc.setTextColor(181,121,0); doc.textWithLink("Voir sur la carte",191-doc.getTextWidth("Voir sur la carte"),30,{url:`https://maps.google.com/?q=${p.meta.lat},${p.meta.lon}`}); }
+    doc.setTextColor(0);
+    const top=41, maxW=180, maxH=297-top-10, r=Math.min(maxW/p.w,maxH/p.h), iw=p.w*r, ih=p.h*r;
+    doc.addImage(p.img,"JPEG",15+(maxW-iw)/2,top,iw,ih);
+  });
+  const st=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+  return {
+    b64: doc.output("datauristring").split(",")[1],
+    filename: `${safeName(client)}_${st}.pdf`,
+    subject: `Preuve de livraison – ${client} – Tour ${tour} – ${fmtDate(now).slice(0,10)}`,
+    body: `Preuve de livraison\nClient : ${client}\nTour : ${tour}\nChauffeur : ${me.user}\nDate : ${fmtDate(now)}\nPhotos : ${all.length}`+(obs?`\n\nObservations :\n${obs}`:""),
+    client, tour, photos: all.length
+  };
+}
+
+/* ---------- Envoi ---------- */
+function canMail(){ return !!(A && A.mailReady && A.mailReady()); }
+$("btnSend").onclick=async()=>{
+  if(!window.jspdf){ toast(t("noPdfModule")); return; }
+  busy(true);
+  let pkt; try{ pkt=buildPdf(); }catch(e){ busy(false); toast(t("pdfErr")); return; }
+  if(!canMail()){
+    busy(false);
+    if(A && A.sharePdf){ A.sharePdf(pkt.b64,pkt.filename,EMAIL_DEST,pkt.subject,pkt.body); } else toast(t("sendNA"));
+    return;
+  }
+  if(!navigator.onLine){
+    await saveDraft(pkt,true); resetDelivery(); renderCats(); busy(false);
+    overlay({l1:pkt.client, l2:t("okDraft"), l3:t("okDraftSub"), btn:t("okNext")}); return;
+  }
+  sending={kind:"new", pkt}; toast(t("sendingNow"),120000);
+  A.sendPdfMail(pkt.b64,pkt.filename,pkt.subject,pkt.body);
+};
+window.onMailResult=async function(ok, err){
+  busy(false); $("toast").classList.remove("show");
+  const s=sending; sending=null; if(!s) return;
+  if(s.kind==="draft"){
+    if(ok){ await DB.del("drafts",s.d.id); await saveSent(s.d); toast(t("sentDraftOk",{c:s.d.client})); await refreshDrawer(); if(autoAll) setTimeout(()=>sendAllDrafts(s.onlyAuto),500); }
+    else { autoAll=false; toast(t("sendFail")+(err||""),6000); }
+    return;
+  }
+  if(ok){ await saveSent(s.pkt); resetDelivery(); renderCats(); refreshCounts();
+    overlay({ok:true, l1:s.pkt.client, l2:t("okSent"), l3:t("tourOf",{t:s.pkt.tour}), btn:t("okNext"), ms:3500}); return; }
+  await saveDraft(s.pkt,true); resetDelivery(); renderCats();
+  overlay({l1:s.pkt.client, l2:t("okDraft"), l3:t("okDraftSub"), btn:t("okNext")});
+};
+
+/* ---------- Stockage : brouillons + envoyés ---------- */
+const DB={db:null,
+  open(){ return this.db?Promise.resolve(this.db):new Promise((res,rej)=>{ const r=indexedDB.open("photolivraison",2);
+    r.onupgradeneeded=()=>{ const d=r.result; if(!d.objectStoreNames.contains("drafts")) d.createObjectStore("drafts",{keyPath:"id"}); if(!d.objectStoreNames.contains("sent")) d.createObjectStore("sent",{keyPath:"id"}); };
+    r.onsuccess=()=>{ this.db=r.result; res(this.db); }; r.onerror=()=>rej(r.error); }); },
+  async tx(store,mode,fn){ const db=await this.open(); return new Promise((res,rej)=>{ const x=db.transaction(store,mode); const q=fn(x.objectStore(store)); x.oncomplete=()=>res(q?q.result:undefined); x.onerror=()=>rej(x.error); }); },
+  all(s){ return this.tx(s,"readonly",st=>st.getAll()); },
+  put(s,d){ return this.tx(s,"readwrite",st=>st.put(d)); },
+  del(s,id){ return this.tx(s,"readwrite",st=>st.delete(id)); }
+};
+const newId=()=>String(Date.now())+Math.floor(Math.random()*1000);
+async function mine(store){ if(!me) return []; let a=[]; try{ a=(await DB.all(store)).filter(d=>d.user===me.key); }catch(e){} return a.sort((x,y)=>y.id.localeCompare(x.id)); }
+async function saveDraft(p,auto){
+  await DB.put("drafts",{id:newId(), user:me.key, tour:p.tour, client:p.client, photos:p.photos, created:fmtDate(new Date()),
+    filename:p.filename, subject:p.subject, body:p.body, b64:p.b64, auto:!!auto, copy:!auto});
+  refreshCounts();
+}
+async function saveSent(p){
+  await DB.put("sent",{id:newId(), user:me.key, tour:p.tour, client:p.client, photos:p.photos, sentAt:fmtDate(new Date()),
+    filename:p.filename, subject:p.subject, body:p.body, b64:p.b64});
+  const list=await mine("sent"); for(const old of list.slice(KEEP_SENT)) await DB.del("sent",old.id);
+  refreshCounts();
+}
+async function refreshCounts(){
+  const d=await mine("drafts"), s=await mine("sent");
+  const b=$("menuBadge"); b.hidden=!d.length; b.textContent=d.length;
+  $("nDr").textContent=d.length?`(${d.length})`:""; $("nOut").textContent=s.length?`(${s.length})`:"";
+  return {d,s};
+}
+function sendDraft(d, all, onlyAuto){
+  if(sending) return;
+  if(!canMail()){ toast(t("notConfigured")); return; }
+  if(!navigator.onLine){ toast(t("retryLater")); return; }
+  sending={kind:"draft", d, onlyAuto}; autoAll=all; busy(true); toast(t("sendingC",{c:d.client}),120000);
+  A.sendPdfMail(d.b64,d.filename,d.subject,d.body);
+}
+async function sendAllDrafts(onlyAuto){
+  if(sending || !me || !navigator.onLine || !canMail()) return;
+  const list=(await mine("drafts")).filter(d=>!onlyAuto || d.auto).reverse();
+  if(list.length) sendDraft(list[0], true, onlyAuto);
+}
+
+/* ---------- Tiroir latéral ---------- */
+function openDrawer(){ $("scrim").hidden=false; $("drawer").classList.add("open"); $("drawer").setAttribute("aria-hidden","false"); refreshDrawer(); }
+function closeDrawer(){ $("drawer").classList.remove("open"); $("drawer").setAttribute("aria-hidden","true"); $("scrim").hidden=true; }
+function drawerOpen(){ return $("drawer").classList.contains("open"); }
+function setTab(x){ drTab=x; $("tabDr").classList.toggle("on",x==="dr"); $("tabOut").classList.toggle("on",x==="out"); refreshDrawer(); }
+function btnI(cls,icon,text,fn){ const b=el("button",cls); b.appendChild(ico(icon)); b.appendChild(el("span",null,text)); b.onclick=fn; return b; }
+async function refreshDrawer(){
+  const {d,s}=await refreshCounts(); const box=$("drList"); box.innerHTML="";
+  $("drSendAll").hidden = !(drTab==="dr" && d.length);
+  const list = drTab==="dr" ? d : s;
+  if(!list.length){ const e=el("div","empty"); e.appendChild(ico(drTab==="dr"?"i-inbox":"i-send")); e.appendChild(el("div",null, drTab==="dr" ? t("noDrafts") : t("noSent"))); box.appendChild(e); return; }
+  list.forEach(x=>{
+    const it=el("div","item"+(drTab==="out"?" sent":""));
+    const row=el("div","row"); const st=el("div","st"); st.appendChild(ico(drTab==="dr"?"i-clock":"i-check",20));
+    const tx=el("div"); tx.style.minWidth="0";
+    const n=el("div","n",x.client); n.dir="auto";
+    const when = drTab==="dr" ? t("created",{d:x.created}) : t("sentOn",{d:x.sentAt});
+    tx.append(n, el("div","m",`${t("tourOf",{t:x.tour})} • ${plN(x.photos)}`), el("div","m",when));
+    if(drTab==="dr") tx.appendChild(el("span","tag", x.copy ? t("tagCopy") : t("tagAuto")));
+    row.append(st,tx); it.appendChild(row);
+    const b=el("div","b");
+    if(drTab==="dr"){
+      b.append(btnI("go","i-send",t("sendBtn"),()=>sendDraft(x,false,false)),
+               btnI("","i-file",t("openPdf"),()=>openPdf(x)),
+               btnI("x","i-trash",t("delete"),async()=>{ if(confirm(t("confirmDelDraft",{c:x.client}))){ await DB.del("drafts",x.id); refreshDrawer(); } }));
+    } else {
+      b.append(btnI("go","i-copy",t("copy"),async()=>{ await saveDraft(x,false); toast(t("copied")); setTab("dr"); }),
+               btnI("","i-file",t("openPdf"),()=>openPdf(x)));
+    }
+    it.appendChild(b); box.appendChild(it);
+  });
+}
+function openPdf(x){ if(A && A.openPdf) A.openPdf(x.b64,x.filename); else toast(t("openNA")); }
+$("btnMenu").onclick=openDrawer; $("drClose").onclick=closeDrawer; $("scrim").onclick=closeDrawer;
+$("tabDr").onclick=()=>setTab("dr"); $("tabOut").onclick=()=>setTab("out");
+$("drSendAll").onclick=()=>sendAllDrafts(false);
+$("drLogout").onclick=logout;
+let tx0=null, ty0=null;
+document.addEventListener("touchstart",e=>{ const x=e.touches[0]; tx0=x.clientX; ty0=x.clientY; },{passive:true});
+document.addEventListener("touchend",e=>{
+  if(tx0==null) return; const x=e.changedTouches[0], dy=Math.abs(x.clientY-ty0);
+  const rtl=document.documentElement.dir==="rtl", W=window.innerWidth;
+  const dx=rtl ? (tx0-x.clientX) : (x.clientX-tx0);
+  const fromEdge=rtl ? (W-tx0)<30 : tx0<30;
+  if(!$("sMain").hidden && $("lb").hidden && dy<60){
+    if(!drawerOpen() && fromEdge && dx>70) openDrawer();
+    else if(drawerOpen() && dx<-70) closeDrawer();
+  }
+  tx0=null;
+},{passive:true});
+
+/* ---------- Réseau ---------- */
+window.addEventListener("online",()=>{ if(me){ toast(t("netBack")); checkSession(); setTimeout(()=>sendAllDrafts(true),2000); } });
+window.addEventListener("offline",()=>{ if(me) toast(t("netGone")); });
+setInterval(()=>{ if(me) sendAllDrafts(true); },180000);
+
+/* ---------- Bouton retour Android ---------- */
+window.onBack=function(){
+  if(!$("over").hidden){ $("over").click(); return true; }
+  if(!$("langMenu").hidden){ $("langMenu").hidden=true; return true; }
+  if(!$("lb").hidden){ closeLb(); return true; }
+  if(drawerOpen()){ closeDrawer(); return true; }
+  if(!$("sTour").hidden && tour){ openMain(); return true; }
+  return false;
+};
+
+/* ---------- Démarrage : reprend la session enregistrée ---------- */
+resetDelivery();
+applyLang();
+if(!window.Android && "serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
+(function boot(){
+  const s=lsGet("pl_session");
+  if(s && s.user && s.role && s.pass){ me=s; startSession(); setTimeout(checkSession,1200); }
+})();
+</script>
+</body>
+</html>
