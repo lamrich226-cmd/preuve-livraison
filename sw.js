@@ -1,5 +1,5 @@
 // Garde l'appli disponible sans internet (brouillons hors ligne)
-const CACHE = "preuve-v3";
+const CACHE = "preuve-v4";
 const CORE = ["./", "index.html", "jspdf.umd.min.js", "manifest.json",
   "fonts/archivo.woff2", "fonts/kufi-arabic.woff2", "icons/icon-192.png", "icons/apple-touch-icon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE))); self.skipWaiting(); });

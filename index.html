@@ -208,6 +208,11 @@ svg.i.stamp{width:104px;height:104px;color:var(--accent);display:block;margin:0 
 .busy .sheet,.busy .dock{opacity:.6}
 svg.logo{width:116px;height:116px;color:var(--accent);display:block;margin:0 auto 10px}
 .over svg.logo{width:140px;height:140px;margin-bottom:14px}
+.inp textarea.one{min-height:0;resize:none;overflow:hidden;font-size:1.05rem;padding:14px 0}
+.scanhelp{display:flex;gap:12px;align-items:flex-start;margin-top:10px;padding:12px;border-radius:12px;background:var(--accent-soft);color:var(--ink);font-size:.88rem;line-height:1.4}
+.scanhelp svg.i{width:26px;height:26px;flex:none;margin-top:2px}
+.scanhelp b{display:block;margin-bottom:2px}
+.scanbtn{margin-top:10px;padding:12px}
 .inp textarea{flex:1;min-width:0;width:100%;border:0;background:transparent;color:var(--ink);font:inherit;font-size:1rem;line-height:1.45;padding:12px 0;outline:none;resize:vertical;min-height:88px}
 .cat-name{width:100%;border:0;border-bottom:1.5px dashed var(--line);background:transparent;color:var(--ink);font:inherit;font-weight:800;font-size:1.06rem;padding:2px 0 3px;outline:none}
 .cat-name:focus{border-bottom-color:var(--accent)}
@@ -256,6 +261,7 @@ svg.logo{width:116px;height:116px;color:var(--accent);display:block;margin:0 aut
     <circle cx="38" cy="82" r="10.5" style="fill:var(--bar);stroke:currentColor;stroke-width:5"/>
     <circle cx="98" cy="82" r="10.5" style="fill:var(--bar);stroke:currentColor;stroke-width:5"/>
   </symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16"/><path d="M8 10h8M8 14h5"/></symbol>
   <symbol id="i-stamp" viewBox="0 0 120 120"><g transform="rotate(-12 60 60)"><circle cx="60" cy="60" r="53" stroke-width="5.5"/><circle cx="60" cy="60" r="43" stroke-width="2.2" stroke-dasharray="3.5 5.5"/><path d="M39 61.5l14 14 28-30" stroke-width="10"/></g></symbol>
 </svg>
 
@@ -325,7 +331,12 @@ svg.logo{width:116px;height:116px;color:var(--accent);display:block;margin:0 aut
   <div class="sheet">
     <div class="card client">
       <label class="lab" for="client"><span data-i18n="client"></span><span class="req">*</span></label>
-      <div class="inp"><input id="client" type="text" data-i18n-ph="clientPh" autocomplete="off" dir="auto"></div>
+      <div class="inp"><textarea id="client" class="one" rows="1" data-i18n-ph="clientPh" autocomplete="off" autocapitalize="words" spellcheck="false" dir="auto"></textarea></div>
+      <div class="scanhelp" id="scanHelp" hidden>
+        <svg class="i" viewBox="0 0 24 24"><use href="#i-scan"/></svg>
+        <div><b data-i18n="scanTitle"></b><span data-i18n="scanSteps"></span></div>
+      </div>
+      <button class="btn btn-2 scanbtn" id="btnScan" type="button" hidden><svg class="i"><use href="#i-scan"/></svg><span data-i18n="scanBtn"></span></button>
       <div class="ocr" id="ocrTxt"></div>
       <div class="chips" id="chips"></div>
     </div>
@@ -399,7 +410,7 @@ const KEEP_SENT = 30;
 const LANGS = {fr:"Français", en:"English", nl:"Nederlands", ar:"العربية"};
 const LOCALE = {fr:"fr-BE", en:"en-GB", nl:"nl-BE", ar:"ar"};
 const I18N = {
-fr:{addPhoto:"Ajouter photo",addFree:"Ajouter une photo libre",freePhoto:"Photo libre",freeName:"Nom de la photo",delField:"Supprimer ce champ",confirmDelField:"Supprimer « {n} » et ses photos ?",obs:"Observations",optional:"facultatif",obsPh:"Écris une remarque sur la livraison…",appName:"Preuve de livraison",loginSub:"Connecte-toi pour commencer ta tournée.",username:"Nom d'utilisateur",password:"Mot de passe",login:"Se connecter",logout:"Déconnexion",showPw:"Afficher le mot de passe",
+fr:{scanTitle:"Lire le nom avec l'iPhone",scanSteps:"Touche le champ, puis l'icône « Scanner du texte » du clavier (ou reste appuyé sur le champ). Vise le nom du client sur le bon et touche « Insérer ».",scanBtn:"Scanner le nom du client",addPhoto:"Ajouter photo",addFree:"Ajouter une photo libre",freePhoto:"Photo libre",freeName:"Nom de la photo",delField:"Supprimer ce champ",confirmDelField:"Supprimer « {n} » et ses photos ?",obs:"Observations",optional:"facultatif",obsPh:"Écris une remarque sur la livraison…",appName:"Preuve de livraison",loginSub:"Connecte-toi pour commencer ta tournée.",username:"Nom d'utilisateur",password:"Mot de passe",login:"Se connecter",logout:"Déconnexion",showPw:"Afficher le mot de passe",
  errEmpty:"Entre ton nom et ton mot de passe.",errNoConf:"La base des comptes n'est pas encore configurée (clé Supabase manquante).",errServer:"Erreur du serveur : ",
  errOffline:"Pas d'internet. Ce compte doit d'abord se connecter une fois avec internet sur ce téléphone.",errWrong:"Nom ou mot de passe incorrect.",sessionEnded:"Ton compte a été modifié ou supprimé. Reconnecte-toi.",
  welcome:"Bienvenue",admin:"Administration",adminSub:"Gère les comptes des chauffeurs.",addDriver:"Ajouter un chauffeur",name:"Nom",add:"Ajouter",accounts:"Comptes",loading:"Chargement…",noAccounts:"Aucun compte.",
@@ -421,7 +432,7 @@ fr:{addPhoto:"Ajouter photo",addFree:"Ajouter une photo libre",freePhoto:"Photo 
  created:"créé le {d}",sentOn:"envoyé le {d}",tagCopy:"Copie : envoi manuel",tagAuto:"Part automatiquement dès qu'il y a internet",sendBtn:"Envoyer",openPdf:"PDF",
  confirmDelDraft:"Supprimer le brouillon « {c} » ? Il ne sera jamais envoyé.",copy:"Créer une copie",copied:"Copie enregistrée dans les brouillons ✔",openNA:"Ouverture non disponible ici.",
  netBack:"Internet revenu : envoi des brouillons…",netGone:"Pas d'internet : les livraisons iront dans les brouillons.",denied:"Accès refusé.",exists:"Ce nom existe déjà.",noPdfApp:"Aucune appli pour lire les PDF sur ce téléphone.",language:"Langue"},
-en:{addPhoto:"Add photo",addFree:"Add a free photo",freePhoto:"Free photo",freeName:"Photo name",delField:"Delete this field",confirmDelField:"Delete “{n}” and its photos?",obs:"Remarks",optional:"optional",obsPh:"Write a remark about the delivery…",appName:"Proof of delivery",loginSub:"Sign in to start your round.",username:"Username",password:"Password",login:"Sign in",logout:"Sign out",showPw:"Show password",
+en:{scanTitle:"Read the name with the iPhone",scanSteps:"Tap the field, then the keyboard’s “Scan Text” icon (or long-press the field). Point at the customer name on the note and tap “Insert”.",scanBtn:"Scan the customer name",addPhoto:"Add photo",addFree:"Add a free photo",freePhoto:"Free photo",freeName:"Photo name",delField:"Delete this field",confirmDelField:"Delete “{n}” and its photos?",obs:"Remarks",optional:"optional",obsPh:"Write a remark about the delivery…",appName:"Proof of delivery",loginSub:"Sign in to start your round.",username:"Username",password:"Password",login:"Sign in",logout:"Sign out",showPw:"Show password",
  errEmpty:"Enter your username and password.",errNoConf:"The account database is not set up yet (Supabase key missing).",errServer:"Server error: ",
  errOffline:"No internet. This account must sign in once with internet on this phone first.",errWrong:"Wrong username or password.",sessionEnded:"Your account was changed or deleted. Please sign in again.",
  welcome:"Welcome",admin:"Administration",adminSub:"Manage the drivers' accounts.",addDriver:"Add a driver",name:"Name",add:"Add",accounts:"Accounts",loading:"Loading…",noAccounts:"No accounts.",
@@ -443,7 +454,7 @@ en:{addPhoto:"Add photo",addFree:"Add a free photo",freePhoto:"Free photo",freeN
  created:"created {d}",sentOn:"sent {d}",tagCopy:"Copy: manual sending",tagAuto:"Sent automatically when internet is back",sendBtn:"Send",openPdf:"PDF",
  confirmDelDraft:"Delete draft “{c}”? It will never be sent.",copy:"Create a copy",copied:"Copy saved in drafts ✔",openNA:"Opening not available here.",
  netBack:"Internet is back: sending drafts…",netGone:"No internet: deliveries will go to drafts.",denied:"Access denied.",exists:"This name already exists.",noPdfApp:"No app to read PDFs on this phone.",language:"Language"},
-nl:{addPhoto:"Foto toevoegen",addFree:"Vrije foto toevoegen",freePhoto:"Vrije foto",freeName:"Naam van de foto",delField:"Dit veld verwijderen",confirmDelField:"„{n}” en de foto's verwijderen?",obs:"Opmerkingen",optional:"optioneel",obsPh:"Schrijf een opmerking over de levering…",appName:"Leveringsbewijs",loginSub:"Meld je aan om je ronde te starten.",username:"Gebruikersnaam",password:"Wachtwoord",login:"Aanmelden",logout:"Afmelden",showPw:"Wachtwoord tonen",
+nl:{scanTitle:"Lees de naam met de iPhone",scanSteps:"Tik op het veld en dan op het pictogram „Scan tekst” van het toetsenbord (of houd het veld ingedrukt). Richt op de naam van de klant op de nota en tik op „Voeg in”.",scanBtn:"Naam van de klant scannen",addPhoto:"Foto toevoegen",addFree:"Vrije foto toevoegen",freePhoto:"Vrije foto",freeName:"Naam van de foto",delField:"Dit veld verwijderen",confirmDelField:"„{n}” en de foto's verwijderen?",obs:"Opmerkingen",optional:"optioneel",obsPh:"Schrijf een opmerking over de levering…",appName:"Leveringsbewijs",loginSub:"Meld je aan om je ronde te starten.",username:"Gebruikersnaam",password:"Wachtwoord",login:"Aanmelden",logout:"Afmelden",showPw:"Wachtwoord tonen",
  errEmpty:"Vul je naam en wachtwoord in.",errNoConf:"De accountdatabase is nog niet ingesteld (Supabase-sleutel ontbreekt).",errServer:"Serverfout: ",
  errOffline:"Geen internet. Dit account moet eerst één keer met internet aanmelden op deze telefoon.",errWrong:"Verkeerde naam of wachtwoord.",sessionEnded:"Je account werd gewijzigd of verwijderd. Meld je opnieuw aan.",
  welcome:"Welkom",admin:"Beheer",adminSub:"Beheer de accounts van de chauffeurs.",addDriver:"Chauffeur toevoegen",name:"Naam",add:"Toevoegen",accounts:"Accounts",loading:"Laden…",noAccounts:"Geen accounts.",
@@ -465,7 +476,7 @@ nl:{addPhoto:"Foto toevoegen",addFree:"Vrije foto toevoegen",freePhoto:"Vrije fo
  created:"gemaakt op {d}",sentOn:"verstuurd op {d}",tagCopy:"Kopie: handmatig versturen",tagAuto:"Gaat automatisch weg zodra er internet is",sendBtn:"Versturen",openPdf:"PDF",
  confirmDelDraft:"Concept „{c}” verwijderen? Het wordt nooit verstuurd.",copy:"Kopie maken",copied:"Kopie opgeslagen bij de concepten ✔",openNA:"Openen hier niet beschikbaar.",
  netBack:"Internet terug: concepten worden verstuurd…",netGone:"Geen internet: leveringen gaan naar de concepten.",denied:"Toegang geweigerd.",exists:"Deze naam bestaat al.",noPdfApp:"Geen app om PDF's te lezen op deze telefoon.",language:"Taal"},
-ar:{addPhoto:"إضافة صورة",addFree:"إضافة صورة حرّة",freePhoto:"صورة حرّة",freeName:"اسم الصورة",delField:"حذف هذا الحقل",confirmDelField:"حذف «{n}» وصورها؟",obs:"ملاحظات",optional:"اختياري",obsPh:"اكتب ملاحظة حول التوصيل…",appName:"إثبات التسليم",loginSub:"سجّل الدخول لبدء جولتك.",username:"اسم المستخدم",password:"كلمة المرور",login:"تسجيل الدخول",logout:"تسجيل الخروج",showPw:"إظهار كلمة المرور",
+ar:{scanTitle:"اقرأ الاسم بالآيفون",scanSteps:"اضغط على الحقل، ثم على أيقونة «مسح النص» في لوحة المفاتيح (أو اضغط مطوّلاً على الحقل). وجّه الكاميرا نحو اسم الزبون على الوصل واضغط «إدراج».",scanBtn:"مسح اسم الزبون",addPhoto:"إضافة صورة",addFree:"إضافة صورة حرّة",freePhoto:"صورة حرّة",freeName:"اسم الصورة",delField:"حذف هذا الحقل",confirmDelField:"حذف «{n}» وصورها؟",obs:"ملاحظات",optional:"اختياري",obsPh:"اكتب ملاحظة حول التوصيل…",appName:"إثبات التسليم",loginSub:"سجّل الدخول لبدء جولتك.",username:"اسم المستخدم",password:"كلمة المرور",login:"تسجيل الدخول",logout:"تسجيل الخروج",showPw:"إظهار كلمة المرور",
  errEmpty:"أدخل اسم المستخدم وكلمة المرور.",errNoConf:"قاعدة الحسابات غير مُعدّة بعد (مفتاح Supabase مفقود).",errServer:"خطأ في الخادم: ",
  errOffline:"لا يوجد إنترنت. يجب أن يسجّل هذا الحساب الدخول مرة واحدة بالإنترنت على هذا الهاتف أولاً.",errWrong:"اسم المستخدم أو كلمة المرور غير صحيحة.",sessionEnded:"تم تعديل حسابك أو حذفه. سجّل الدخول من جديد.",
  welcome:"مرحباً",admin:"الإدارة",adminSub:"إدارة حسابات السائقين.",addDriver:"إضافة سائق",name:"الاسم",add:"إضافة",accounts:"الحسابات",loading:"جارٍ التحميل…",noAccounts:"لا توجد حسابات.",
@@ -513,7 +524,7 @@ const WebBridge = {
       .catch(()=>window.onAddress(id,""));
   },
   // Lecture du bon par Google (via le script d'envoi) : bien plus précise que la lecture dans le navigateur
-  ocrImage(b64){
+  ocrImageGoogle(b64){
     if(!MAIL_URL || !navigator.onLine){ window.onOcrError(); return; }
     fetch(MAIL_URL,{method:"POST",body:JSON.stringify({action:"ocr", user:me&&me.user, pass:me&&me.pass, b64})})
       .then(r=>r.json()).then(j=>{
@@ -711,8 +722,9 @@ function openMain(){
   setTimeout(()=>sendAllDrafts(true),1500);
 }
 function setOcr(k){ ocrKey=k; $("ocrTxt").textContent=k?t(k):""; }
+const IS_WEB = !window.Android;
 function cats(){ return CATS.concat(extras); }
-function resetDelivery(){ photos={}; extras=[]; CATS.forEach(c=>photos[c.key]=[]); $("client").value=""; $("obs").value=""; $("chips").innerHTML=""; setOcr("ocrHint"); }
+function resetDelivery(){ clientPrev=""; if(IS_WEB){ $("btnScan").hidden=false; $("scanHelp").hidden=false; } photos={}; extras=[]; CATS.forEach(c=>photos[c.key]=[]); $("client").value=""; $("obs").value=""; $("chips").innerHTML=""; setOcr(IS_WEB?"":"ocrHint"); }
 function allPhotos(){ return cats().flatMap(c=>photos[c.key]||[]); }
 function obsText(){ return ($("obs").value||"").trim(); }
 function hasPhotos(){ return allPhotos().length>0; }
@@ -726,7 +738,23 @@ $("btnFree").onclick=()=>{
   const key="x"+Date.now(); extras.push({key, name:t("freePhoto")+" "+(extras.length+1), custom:true, icon:"i-img"}); photos[key]=[];
   renderCats(); const inp=document.querySelector(`[data-key="${key}"] .cat-name`); if(inp){ inp.focus(); inp.select(); inp.scrollIntoView({block:"center"}); }
 };
-$("client").addEventListener("input",updateSend);
+let clientPrev="";
+function tidyClient(){
+  const f=$("client"), raw=f.value;
+  const lines=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  if(lines.length>1){ window.onOcrResult(lines.map((x,i)=>({t:x, top:i*10, h:0}))); if(!f.value.trim()) f.value=cleanName(lines[0]); }
+  else { let v=raw.trim(); const m=v.match(CLIENT_KEYS); if(m && m[2] && m[2].trim()) v=m[2]; v=cleanName(v); if(v!==raw) f.value=v; }
+  f.value=f.value.replace(/\s*\n\s*/g," ").trim();
+}
+function growClient(){ const f=$("client"); f.style.height="auto"; f.style.height=f.scrollHeight+"px"; }
+$("client").addEventListener("input",e=>{
+  const v=$("client").value, big=v.length-clientPrev.length>=4 || /\n/.test(v);   // texte scanné ou collé d'un coup
+  if(big) tidyClient();
+  clientPrev=$("client").value; growClient(); updateSend();
+});
+$("client").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("client").blur(); } });
+$("client").addEventListener("blur",()=>{ if($("client").value.trim()){ tidyClient(); clientPrev=$("client").value; growClient(); updateSend(); } });
+$("btnScan").onclick=()=>{ const f=$("client"); f.focus(); f.select(); };
 $("btnReset").onclick=()=>{ if(hasPhotos() && !confirm(t("confirmReset"))) return; resetDelivery(); renderCats(); };
 
 function renderCats(){
@@ -871,7 +899,7 @@ function cleanName(x){
   return x;
 }
 function runOcr(p){
-  if(!(A && A.ocrImage)){ setOcr("typeClient"); return; }
+  if(!(A && A.ocrImage)){ setOcr(""); $("scanHelp").hidden=false; return; }
   setOcr("ocrReading"); $("chips").innerHTML="";
   const im=p.raw, MAX=2000, k=Math.min(1,MAX/Math.max(im.naturalWidth,im.naturalHeight));
   const cv=document.createElement("canvas"); cv.width=Math.round(im.naturalWidth*k); cv.height=Math.round(im.naturalHeight*k);
