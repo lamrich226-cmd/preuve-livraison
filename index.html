@@ -512,15 +512,14 @@ const WebBridge = {
         window.onAddress(id, [street,city].filter(Boolean).join(", ") || j.display_name || ""); })
       .catch(()=>window.onAddress(id,""));
   },
-  _ocr:null,
+  // Lecture du bon par Google (via le script d'envoi) : bien plus précise que la lecture dans le navigateur
   ocrImage(b64){
-    if(!navigator.onLine && !this._ocr){ window.onOcrError(); return; }
-    const load = window.Tesseract ? Promise.resolve() : new Promise((res,rej)=>{ const sc=document.createElement("script"); sc.src="ocr/tesseract.min.js"; sc.onload=res; sc.onerror=rej; document.head.appendChild(sc); });
-    load.then(()=> this._ocr || (this._ocr = Tesseract.createWorker("eng",1,{workerPath:"ocr/worker.min.js", corePath:"ocr/core", langPath:"ocr/lang"})))
-      .then(w=>w.recognize("data:image/jpeg;base64,"+b64))
-      .then(({data})=>{ const items=[]; (data.lines||[]).forEach(l=>{ const tx=(l.text||"").trim(); if(tx) items.push({t:tx, top:l.bbox.y0, h:l.bbox.y1-l.bbox.y0}); });
-        window.onOcrResult(items); })
-      .catch(()=>window.onOcrError());
+    if(!MAIL_URL || !navigator.onLine){ window.onOcrError(); return; }
+    fetch(MAIL_URL,{method:"POST",body:JSON.stringify({action:"ocr", user:me&&me.user, pass:me&&me.pass, b64})})
+      .then(r=>r.json()).then(j=>{
+        if(!j.ok || !j.lines){ window.onOcrError(); return; }
+        window.onOcrResult(j.lines.map((tx,i)=>({t:tx, top:i*10, h:0})));
+      }).catch(()=>window.onOcrError());
   },
   _file(b64, filename){ const bin=atob(b64), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new File([u],filename,{type:"application/pdf"}); },
   openPdf(b64, filename){ const f=this._file(b64,filename);
