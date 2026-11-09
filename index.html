@@ -133,6 +133,10 @@ svg.i.stamp{width:104px;height:104px;color:var(--accent);display:block;margin:0 
 .thumbs:empty{display:none}
 .th{flex:none;width:84px;height:84px;padding:0;overflow:hidden;border-radius:12px;background:var(--surface-2);border:1px solid var(--line)}
 .th img{width:100%;height:100%;object-fit:cover;display:block}
+.th{position:relative}
+.th.pend img{opacity:.55}
+.th.pend::after{content:"";position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:3px solid rgba(255,255,255,.5);border-top-color:var(--amber,#F2A900);animation:spn .8s linear infinite}
+@keyframes spn{to{transform:rotate(360deg)}}
 .acts{display:grid;grid-template-columns:1.35fr 1fr;gap:8px;margin-top:12px}
 .acts label{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 8px;font-weight:700;font-size:.95rem;border-radius:12px;cursor:pointer;position:relative;text-align:center}
 .a-cam{background:var(--bar);color:#fff}
@@ -423,7 +427,7 @@ fr:{scanTitle:"Lire le nom avec l'iPhone",scanSteps:"Touche le champ, puis l'ic�
  ocrFail:"Lecture impossible. Tape le nom du client.",typeClient:"Tape le nom du client.",send:"Envoyer la preuve",newDelivery:"Nouvelle livraison",confirmReset:"Effacer toutes les photos et recommencer ?",
  lostPhotos:"Les photos de la livraison en cours seront perdues. Se déconnecter ?",
  cat_bon:"Bon de livraison",cat_pat:"Pâtisserie",cat_kk:"Koffiekoek",cat_sand:"Sandwich",cat_pain:"Pain",required:"Obligatoire",empty:"Aucune photo",takePhoto:"Prendre photo",gallery:"Galerie",
- needBon:"Prends au moins une photo du bon de livraison.",needClient:"Indique le nom du client.",ready:"Prêt : {n} au total",progress:"{n}/{m} catégories",
+ bgWait:"Photos en cours de traitement ({n})…",needBon:"Prends au moins une photo du bon de livraison.",needClient:"Indique le nom du client.",ready:"Prêt : {n} au total",progress:"{n}/{m} catégories",
  processing:"Traitement de la photo…",processingN:"Traitement de {n} photos…",saved1:"Photo enregistrée",savedN:"{n} photos enregistrées",readErr:"Impossible de lire la photo. Réessaie.",
  close:"Fermer",confirmDelPhoto:"Supprimer « {n} » ?",noPdfModule:"Le module PDF est absent de l'appli.",pdfErr:"Erreur lors de la création du PDF.",sendNA:"Envoi non disponible ici.",
  sendingNow:"Envoi en cours…",okSent:"Preuve envoyée",okDraft:"Enregistrée dans les brouillons",okDraftSub:"Elle partira toute seule dès que le réseau revient.",okNext:"Livraison suivante",sentDraftOk:"Envoyé ✔ {c}",
@@ -445,7 +449,7 @@ en:{scanTitle:"Read the name with the iPhone",scanSteps:"Tap the field, then the
  ocrFail:"Could not read. Type the customer name.",typeClient:"Type the customer name.",send:"Send proof",newDelivery:"New delivery",confirmReset:"Delete all photos and start again?",
  lostPhotos:"Photos of the current delivery will be lost. Sign out?",
  cat_bon:"Delivery note",cat_pat:"Pastry",cat_kk:"Koffiekoek",cat_sand:"Sandwich",cat_pain:"Bread",required:"Required",empty:"No photos",takePhoto:"Take photo",gallery:"Gallery",
- needBon:"Take at least one photo of the delivery note.",needClient:"Enter the customer name.",ready:"Ready: {n} in total",progress:"{n}/{m} categories",
+ bgWait:"Photos still processing ({n})…",needBon:"Take at least one photo of the delivery note.",needClient:"Enter the customer name.",ready:"Ready: {n} in total",progress:"{n}/{m} categories",
  processing:"Processing photo…",processingN:"Processing {n} photos…",saved1:"Photo saved",savedN:"{n} photos saved",readErr:"Could not read the photo. Try again.",
  close:"Close",confirmDelPhoto:"Delete “{n}”?",noPdfModule:"The PDF module is missing from the app.",pdfErr:"Error while creating the PDF.",sendNA:"Sending not available here.",
  sendingNow:"Sending…",okSent:"Proof sent",okDraft:"Saved in drafts",okDraftSub:"It will be sent automatically when the network is back.",okNext:"Next delivery",sentDraftOk:"Sent ✔ {c}",
@@ -467,7 +471,7 @@ nl:{scanTitle:"Lees de naam met de iPhone",scanSteps:"Tik op het veld en dan op 
  ocrFail:"Lezen mislukt. Typ de naam van de klant.",typeClient:"Typ de naam van de klant.",send:"Bewijs versturen",newDelivery:"Nieuwe levering",confirmReset:"Alle foto's wissen en opnieuw beginnen?",
  lostPhotos:"De foto's van de huidige levering gaan verloren. Afmelden?",
  cat_bon:"Leveringsnota",cat_pat:"Gebak",cat_kk:"Koffiekoek",cat_sand:"Sandwich",cat_pain:"Brood",required:"Verplicht",empty:"Geen foto's",takePhoto:"Foto nemen",gallery:"Galerij",
- needBon:"Neem minstens één foto van de leveringsnota.",needClient:"Vul de naam van de klant in.",ready:"Klaar: {n} in totaal",progress:"{n}/{m} categorieën",
+ bgWait:"Foto's worden nog verwerkt ({n})…",needBon:"Neem minstens één foto van de leveringsnota.",needClient:"Vul de naam van de klant in.",ready:"Klaar: {n} in totaal",progress:"{n}/{m} categorieën",
  processing:"Foto verwerken…",processingN:"{n} foto's verwerken…",saved1:"Foto opgeslagen",savedN:"{n} foto's opgeslagen",readErr:"Foto kan niet gelezen worden. Probeer opnieuw.",
  close:"Sluiten",confirmDelPhoto:"„{n}” verwijderen?",noPdfModule:"De PDF-module ontbreekt in de app.",pdfErr:"Fout bij het maken van de PDF.",sendNA:"Versturen hier niet beschikbaar.",
  sendingNow:"Bezig met versturen…",okSent:"Bewijs verstuurd",okDraft:"Opgeslagen bij de concepten",okDraftSub:"Het wordt automatisch verstuurd zodra er weer netwerk is.",okNext:"Volgende levering",sentDraftOk:"Verstuurd ✔ {c}",
@@ -489,7 +493,7 @@ ar:{scanTitle:"اقرأ الاسم بالآيفون",scanSteps:"اضغط على 
  ocrFail:"تعذّرت القراءة. اكتب اسم الزبون.",typeClient:"اكتب اسم الزبون.",send:"إرسال الإثبات",newDelivery:"توصيل جديد",confirmReset:"حذف كل الصور والبدء من جديد؟",
  lostPhotos:"ستُفقد صور التوصيل الحالي. هل تريد تسجيل الخروج؟",
  cat_bon:"وصل التسليم",cat_pat:"حلويات",cat_kk:"كعك القهوة",cat_sand:"سندويتش",cat_pain:"خبز",required:"إلزامي",empty:"لا توجد صور",takePhoto:"التقاط صورة",gallery:"المعرض",
- needBon:"التقط صورة واحدة على الأقل لوصل التسليم.",needClient:"أدخل اسم الزبون.",ready:"جاهز: {n} في المجموع",progress:"{n}/{m} فئات",
+ bgWait:"جارٍ معالجة الصور ({n})…",needBon:"التقط صورة واحدة على الأقل لوصل التسليم.",needClient:"أدخل اسم الزبون.",ready:"جاهز: {n} في المجموع",progress:"{n}/{m} فئات",
  processing:"جارٍ معالجة الصورة…",processingN:"جارٍ معالجة {n} صور…",saved1:"تم حفظ الصورة",savedN:"تم حفظ {n} صور",readErr:"تعذّرت قراءة الصورة. حاول مجدداً.",
  close:"إغلاق",confirmDelPhoto:"حذف «{n}»؟",noPdfModule:"وحدة PDF غير موجودة في التطبيق.",pdfErr:"خطأ أثناء إنشاء ملف PDF.",sendNA:"الإرسال غير متاح هنا.",
  sendingNow:"جارٍ الإرسال…",okSent:"تم إرسال الإثبات",okDraft:"حُفظ في المسودات",okDraftSub:"سيُرسل تلقائياً فور عودة الشبكة.",okNext:"التوصيل التالي",sentDraftOk:"تم الإرسال ✔ {c}",
@@ -704,7 +708,7 @@ function openTour(){
 }
 function chooseTour(x){
   const changed = tour && tour!==x; tour=x; lsSet("pl_tour_"+me.key,x);
-  if(changed) allPhotos().forEach(shrink);
+  if(changed) allPhotos().forEach(p=>{ if(!p.pending&&p.raw) shrink(p); });
   openMain();
 }
 $("tLogout").onclick=logout;
@@ -775,7 +779,7 @@ function renderCats(){
       d.onclick=()=>{ if(arr.length && !confirm(t("confirmDelField",{n:catUi(c)}))) return; extras=extras.filter(x=>x!==c); delete photos[c.key]; renderCats(); };
       h.appendChild(d); }
     const th=el("div","thumbs");
-    arr.forEach(p=>{ const b=el("button","th"); b.setAttribute("aria-label",uiLabel(c,p)); const im=new Image(); im.src=p.img; im.alt=""; b.appendChild(im); b.onclick=()=>openLb(c,p); th.appendChild(b); });
+    arr.forEach(p=>{ const b=el("button","th"+(p.pending?" pend":"")); b.dataset.pid=p.id; b.setAttribute("aria-label",uiLabel(c,p)); const im=new Image(); im.src=p.img||p.thumb; im.alt=""; b.appendChild(im); b.onclick=()=>openLb(c,p); th.appendChild(b); });
     const acts=el("div","acts");
     acts.append(pickBtn(c,"a-cam",arr.length?"i-plus":"i-cam",arr.length?t("addPhoto"):t("takePhoto"),true), pickBtn(c,"a-gal","i-img",t("gallery"),false));
     card.append(h,th,acts); box.appendChild(card);
@@ -791,8 +795,9 @@ function pickBtn(c,cls,icon,text,camera){
 }
 function updateSend(){
   const nb=photos.bon?photos.bon.length:0, total=allPhotos().length, cl=clientName().length>0;
-  $("btnSend").disabled=!(nb>0 && cl);
-  $("sendNote").textContent = !nb ? t("needBon") : !cl ? t("needClient") : t("ready",{n:plN(total)});
+  const pend=allPhotos().filter(p=>p.pending).length;
+  $("btnSend").disabled=!(nb>0 && cl && !pend);
+  $("sendNote").textContent = !nb ? t("needBon") : !cl ? t("needClient") : pend ? t("bgWait",{n:pend}) : t("ready",{n:plN(total)});
   const all=cats(), done=all.filter(c=>photos[c.key]&&photos[c.key].length).length;
   const pr=$("prog"); pr.innerHTML=""; all.forEach(c=>pr.appendChild(el("i",photos[c.key]&&photos[c.key].length?"on":"")));
   $("progTxt").textContent=t("progress",{n:done,m:all.length});
@@ -827,24 +832,48 @@ function getAddress(pos){
 
 /* ---------- Photos ---------- */
 function loadImg(src){ return new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=src; }); }
-async function handleFiles(c, files){
+function handleFiles(c, files){
+  // La photo s'affiche tout de suite ; l'horodatage, l'adresse et la compression se font en arrière-plan.
+  const pos=lastPos;   // position connue à cet instant (pas d'attente)
+  files.forEach(f=>{
+    const arr=photos[c.key], first=(c.key==="bon" && arr.length===0);
+    const d=Date.now();
+    const p={ id:"p"+d+Math.random().toString(36).slice(2,7), pending:true, thumb:URL.createObjectURL(f), file:f,
+      meta:{ when:fmtDate(new Date(d)), date:d, addr:null, acc:null, gps:null, lat:null, lon:null } };
+    setMetaPos(p,pos); arr.push(p);
+    bgQueue.push({p,first,tourAt:tour});
+  });
+  renderCats(); toast((files.length>1?t("savedN",{n:files.length}):t("saved1"))+" ✔",1500);
+  runQueue();
+}
+function setMetaPos(p,pos){
+  if(!pos) return;
+  const m=p.meta; m.acc=pos.coords.accuracy; m.lat=pos.coords.latitude; m.lon=pos.coords.longitude;
+  m.gps=`${m.lat.toFixed(6)}, ${m.lon.toFixed(6)} (±${Math.round(m.acc)} m)`;
+}
+const bgQueue=[]; let bgRunning=false, addrCache=null;
+async function runQueue(){
+  if(bgRunning) return; bgRunning=true;
   try{ await document.fonts.load('800 40px Archivo'); }catch(e){}
-  busy(true); toast(files.length>1?t("processingN",{n:files.length}):t("processing"),20000);
-  try{
-    const pos=await quickPos(), addr=await getAddress(pos);
-    for(const f of files){
-      const img=await loadImg(URL.createObjectURL(f));
-      const arr=photos[c.key], first=(c.key==="bon" && arr.length===0);
-      const p={ id:"p"+Date.now()+Math.random().toString(36).slice(2,7), raw:img,
-        meta:{ when:fmtDate(new Date()), date:Date.now(), addr, acc: pos?pos.coords.accuracy:null,
-          gps: pos?`${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)} (±${Math.round(pos.coords.accuracy)} m)`:null,
-          lat: pos?pos.coords.latitude:null, lon: pos?pos.coords.longitude:null } };
-      shrink(p); arr.push(p);
-      if(first && !clientName()) runOcr(p);
-    }
-    toast((files.length>1?t("savedN",{n:files.length}):t("saved1"))+" ✔");
-  }catch(e){ toast(t("readErr")); }
-  busy(false); renderCats();
+  while(bgQueue.length){
+    const job=bgQueue.shift(), p=job.p;
+    try{
+      if(!p.meta.gps){ const ps=await quickPos(); setMetaPos(p,ps); }
+      if(p.meta.lat!=null){
+        const c0=addrCache;
+        if(c0 && Math.abs(c0.lat-p.meta.lat)<0.0003 && Math.abs(c0.lon-p.meta.lon)<0.0003 && Date.now()-c0.t<600000) p.meta.addr=c0.addr;
+        else { p.meta.addr=await getAddress({coords:{latitude:p.meta.lat,longitude:p.meta.lon}}); if(p.meta.addr) addrCache={lat:p.meta.lat,lon:p.meta.lon,addr:p.meta.addr,t:Date.now()}; }
+      }
+      p.raw=await loadImg(p.thumb);
+      shrink(p); p.pending=false;
+      if(job.first && !clientName() && allPhotos().includes(p)) runOcr(p);
+    }catch(e){ p.pending=false; p.failed=true; p.img=p.img||p.thumb; toast(t("readErr")); }
+    p.file=null;
+    document.querySelectorAll('[data-pid="'+p.id+'"]').forEach(b=>{ b.classList.remove("pend"); const im=b.querySelector("img"); if(im&&p.img) im.src=p.img; });
+    if(lbCur&&lbCur.p===p&&p.img) $("lbImg").src=p.img;
+    updateSend();
+  }
+  bgRunning=false;
 }
 // Horodatage sur la photo, style « Timestamp Camera » : texte blanc ombré, sans bandeau
 const JOURS=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
@@ -882,7 +911,7 @@ function shrink(p){
 function pad2(n){ return String(n).padStart(2,"0"); }
 
 /* ---------- Visionneuse ---------- */
-function openLb(c,p){ lbCur={c,p}; $("lbImg").src=p.img; $("lbCap").textContent=uiLabel(c,p); $("lb").hidden=false; }
+function openLb(c,p){ lbCur={c,p}; $("lbImg").src=p.img||p.thumb; $("lbCap").textContent=uiLabel(c,p); $("lb").hidden=false; }
 function closeLb(){ $("lb").hidden=true; $("lbImg").src=""; lbCur=null; }
 $("lbClose").onclick=closeLb;
 $("lbDel").onclick=()=>{ if(!lbCur) return; if(!confirm(t("confirmDelPhoto",{n:uiLabel(lbCur.c,lbCur.p)}))) return;
